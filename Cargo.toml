@@ -15,5 +15,5 @@ tokio = { version = "1.40.0", features = ["full"] }
 hashbrown = "0.15.0"
 hexx = "0.18.0"
 enum-map = "2.7.3"
-ashscript-types="0.3.0"
+ashscript-types="0.4.0"
 lazy_static="1.5.0"
