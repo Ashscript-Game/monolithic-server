@@ -33,6 +33,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5c6cb57a04249c6480766f7f7cef5467412af1490f8d1e243141daddada3264f"
 
 [[package]]
+name = "ashscript-types"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d8f531df8e04fd2ae6d046c0958274aaf71f4fb8d3949a47200689665141b2f3"
+dependencies = [
+ "enum-map",
+ "hashbrown",
+ "hexx",
+]
+
+[[package]]
 name = "async-trait"
 version = "0.1.83"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -624,6 +635,7 @@ dependencies = [
 name = "monolithic-server"
 version = "0.1.0"
 dependencies = [
+ "ashscript-types",
  "axum",
  "enum-map",
  "fern",

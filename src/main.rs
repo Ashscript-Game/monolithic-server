@@ -5,7 +5,6 @@ use socketioxide::SocketIo;
 
 pub mod client;
 pub mod logging;
-pub mod game_types;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -28,3 +27,4 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
