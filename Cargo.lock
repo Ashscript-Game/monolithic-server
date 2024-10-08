@@ -34,9 +34,9 @@ checksum = "5c6cb57a04249c6480766f7f7cef5467412af1490f8d1e243141daddada3264f"
 
 [[package]]
 name = "ashscript-types"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8f531df8e04fd2ae6d046c0958274aaf71f4fb8d3949a47200689665141b2f3"
+checksum = "72683b09fe21af1b64587376f10b086a871cb13ce65ce652c61d4f4fbc2d1b6a"
 dependencies = [
  "enum-map",
  "hashbrown",
@@ -642,6 +642,7 @@ dependencies = [
  "hashbrown",
  "hexx",
  "humantime",
+ "lazy_static",
  "log",
  "serde",
  "serde_json",
