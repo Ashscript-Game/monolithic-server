@@ -13,24 +13,26 @@ pub fn turret_damage(turret: &Turret) -> u32 {
 }
 
 pub fn turret_attack(turret: &Turret, unit: &mut Unit) {
-    if turret.energy < turret_attack_cost(turret) {
+    let attack_cost = turret.attack_cost();
+    if turret.energy < attack_cost {
         return
     };
-
+    
     if turret.hex == unit.hex {
         return
     }
 
     let distance = turret.hex.unsigned_distance_to(unit.hex);
-    if distance > turret_range(&turret) {
+    if distance > turret.range() {
         return
     }
 
-    if turret_damage(&turret) > unit.health {
+    let damage = turret.damage();
+    if damage > unit.health {
         unit.health = 0
     } else {
-        unit.health -= turret_damage(&turret)
+        unit.health -= damage
     }
 
-    turret.energy -= turret_attack_cost(turret);
+    turret.energy -= attack_cost;
 }
