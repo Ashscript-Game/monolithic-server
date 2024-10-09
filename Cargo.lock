@@ -35,8 +35,7 @@ checksum = "5c6cb57a04249c6480766f7f7cef5467412af1490f8d1e243141daddada3264f"
 [[package]]
 name = "ashscript-types"
 version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "075300a760d529b08272ca8e55c777acab7a4e0af0798bafe160d222bb694286"
+source = "git+https://github.com/Ashscript-Game/ashscript-types#b7430ce02694e4dae0bf648acfa9133bda40a53f"
 dependencies = [
  "enum-map",
  "hashbrown",
