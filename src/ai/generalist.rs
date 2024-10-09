@@ -19,6 +19,7 @@ pub fn main(game_state: &GameState, memory: &mut Memory) -> Intents {
 
     spawn_units(game_state, memory);
 
+    intents
 }
 
 pub fn spawn_units(game_state: &GameState, memory: &mut Memory) {
