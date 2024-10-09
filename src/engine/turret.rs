@@ -12,7 +12,7 @@ pub fn turret_damage(turret: &Turret) -> u32 {
     1
 }
 
-pub fn turret_attack(turret: &Turret, unit: &mut Unit) {
+pub fn turret_attack(turret: &mut Turret, unit: &mut Unit) {
     let attack_cost = turret.attack_cost();
     if turret.energy < attack_cost {
         return

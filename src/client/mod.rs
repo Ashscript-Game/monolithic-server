@@ -14,16 +14,13 @@ pub async fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
         socket.id
     );
 
-    let mut game_state = GameState {
-        units: collections::HashMap::new(),
-        turret: collections::HashMap::new(),
-    };
+    let mut game_state = GameState::new();
 
     loop {
         socket
             .emit(
                 "keyframe",
-                serde_json::from_value(game_state)
+                serde_json::json!(game_state)
             )
             .unwrap();
 

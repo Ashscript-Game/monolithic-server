@@ -5,11 +5,11 @@ use hexx::Hex;
 
 use crate::game_state::GameState;
 
-use super::constants::{AGE_PER_GEN_PART, UNIT_AGE_EXP, UNIT_BASE_AGE, UNIT_PART_WEIGHTS};
-
 pub fn age_units(game_state: &mut GameState) {
-    for (_, unit) in game_state.units.iter_mut() {
-        age(unit);
+    for (_, chunk) in game_state.map.chunks.iter_mut() {
+        for (_, unit) in chunk.units.iter_mut() {
+            age(unit);
+        }
     }
 }
 
@@ -18,20 +18,24 @@ pub fn age(unit: &mut Unit) {
 }
 
 pub fn delete_dead_units(game_state: &mut GameState) {
-    game_state.units.retain(|_, unit| {
-        if unit.age >= unit_max_age(unit) {
-            return false
-        }
-        if unit.health == 0 {
-            return false
-        }
 
-        true
-    });
+    for (_, chunk) in game_state.map.chunks.iter_mut() {
+        chunk.units.retain(|_, unit| {
+            if unit.age >= unit.max_age() {
+                return false
+            }
+            if unit.health == 0 {
+                return false
+            }
+    
+            true
+        });
+    }
 }
 
 pub fn attack(attacker: &mut Unit, target: &mut Unit) {
-    if attacker.energy < unit_attack_cost(attacker) {
+    let cost = attacker.attack_cost();
+    if attacker.energy < cost {
         return;
     }
 
@@ -40,61 +44,20 @@ pub fn attack(attacker: &mut Unit, target: &mut Unit) {
     }
 
     let distance = attacker.hex.unsigned_distance_to(target.hex);
-    if distance > unit_range(attacker) {
+    if distance > attacker.range() {
         return;
     }
 
-    let damage = unit_damage(attacker);
+    let damage = attacker.damage();
     if damage > target.health {
         target.health = 0
     } else {
         target.health -= damage
     }
 
-    attacker.energy -= unit_attack_cost(attacker);
-}
-
-pub fn unit_range(unit: &Unit) -> u32 {
-    unit.body[UnitPart::Ranged]
-}
-
-pub fn unit_damage(unit: &Unit) -> u32 {
-    unit.body[UnitPart::Ranged]
-}
-
-pub fn unit_attack_cost(unit: &Unit) -> u32 {
-    unit.body[UnitPart::Ranged]
-}
-
-pub fn unit_weight(unit: &Unit) -> u32 {
-    let mut weight = 0;
-
-    for (part, _) in UNIT_PART_WEIGHTS.iter() {
-        weight += UNIT_PART_WEIGHTS[part]
-    }
-    
-    weight
-}
-
-pub fn unit_max_age(unit: &Unit) -> u32 {
-    ((unit.body[UnitPart::Generate] * AGE_PER_GEN_PART) as f32).powf(UNIT_AGE_EXP) as u32 + UNIT_BASE_AGE
+    attacker.energy -= cost;
 }
 
 pub fn spawn_unit(owner_id: u32, hex: Hex, game_state: &mut GameState,) {
 
-}
-
-pub fn unit_at_hex(
-    hex: hexx::Hex,
-    game_state: &GameState,
-) -> Option<&Unit> {
-    for (_, unit) in game_state.units.iter() {
-        if hex != unit.hex {
-            continue;
-        }
-
-        return Some(unit);
-    }
-
-    None
 }
