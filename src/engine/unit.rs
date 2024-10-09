@@ -1,6 +1,7 @@
 use std::u32;
 
 use ashscript_types::unit::{Unit, UnitPart};
+use hexx::Hex;
 
 use crate::game_state::GameState;
 
@@ -77,4 +78,23 @@ pub fn unit_weight(unit: &Unit) -> u32 {
 
 pub fn unit_max_age(unit: &Unit) -> u32 {
     ((unit.body[UnitPart::Generate] * AGE_PER_GEN_PART) as f32).powf(UNIT_AGE_EXP) as u32 + UNIT_BASE_AGE
+}
+
+pub fn spawn_unit(owner_id: u32, hex: Hex, game_state: &mut GameState,) {
+
+}
+
+pub fn unit_at_hex(
+    hex: hexx::Hex,
+    game_state: &GameState,
+) -> Option<&Unit> {
+    for (_, unit) in game_state.units.iter() {
+        if hex != unit.hex {
+            continue;
+        }
+
+        return Some(unit);
+    }
+
+    None
 }
