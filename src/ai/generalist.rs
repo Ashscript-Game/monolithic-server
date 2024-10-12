@@ -1,4 +1,4 @@
-use ashscript_types::intents::Intents;
+use ashscript_types::intents::{self, Intents};
 
 use crate::game_state::{self, GameState};
 
@@ -14,7 +14,7 @@ pub fn main(game_state: &GameState, memory: &mut Memory) -> Intents {
     defenders_defend(game_state, memory);
     extractors_extract(game_state, memory);
     haulers_haul(game_state, memory);
-    turrets_shoot(game_state, memory);
+    turrets_shoot(game_state, memory, &mut intents);
 
 
     spawn_units(game_state, memory);
@@ -70,9 +70,13 @@ pub fn haulers_haul(game_state: &GameState, memory: &mut Memory) {
     }
 }
 
-pub fn turrets_shoot(game_state: &GameState, memory: &mut Memory) {
+pub fn turrets_shoot(game_state: &GameState, memory: &mut Memory, intents: &mut Intents) {
     for chunk in game_state.map.chunks.values() {
         // loop through turrets
         // shoot at closest enemy
+
+        for turret in chunk.turrets.values() {
+
+        }
     }
 }

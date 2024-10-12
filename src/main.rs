@@ -1,3 +1,4 @@
+use ashscript_types::intents::Intents;
 use axum::routing::get;
 use log::info;
 use logging::setup_logger;
@@ -31,3 +32,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+trait IntentsExapansion {
+    fn turret_shoot();
+}
+
+impl IntentsExapansion for Intents {
+    fn turret_shoot() {
+
+    }
+}

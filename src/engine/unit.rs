@@ -33,6 +33,10 @@ pub fn delete_dead_units(game_state: &mut GameState) {
     }
 }
 
+pub fn attack_intents() {
+    
+}
+
 pub fn attack(attacker: &mut Unit, target: &mut Unit) {
     let cost = attacker.attack_cost();
     if attacker.energy < cost {
