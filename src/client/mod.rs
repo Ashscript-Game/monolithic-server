@@ -5,7 +5,7 @@ use serde_json::{json, Value};
 use socketioxide::extract::{Data, SocketRef};
 use tokio::time::sleep;
 
-use crate::game_state::GameState;
+use crate::game_state::{BotGameState, GameState};
 
 pub async fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
     info!(
@@ -14,13 +14,14 @@ pub async fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
         socket.id
     );
 
-    let mut game_state = GameState::new();
+    let game_state = GameState::new();
+    let bot_game_state = BotGameState::new(&game_state);
 
     loop {
         socket
             .emit(
                 "keyframe",
-                serde_json::json!(game_state)
+                serde_json::json!(bot_game_state)
             )
             .unwrap();
 

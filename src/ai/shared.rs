@@ -24,12 +24,12 @@ impl AiFeatures {
 }
 
 #[derive(Default)]
-pub struct Memory {
+pub struct BotMemory {
     pub features: AiFeatures,
     pub units_by_role: EnumMap<UnitRole, Vec<u32>>
 }
 
-impl Memory {
+impl BotMemory {
     pub fn new() -> Self {
         Self {
             features: AiFeatures::new(),

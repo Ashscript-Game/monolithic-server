@@ -1,6 +1,6 @@
 use std::u32;
 
-use ashscript_types::unit::{Unit, UnitPart};
+use ashscript_types::{actions::UnitAttack, intents::Intents, unit::{Unit, UnitPart}};
 use hexx::Hex;
 
 use crate::game_state::GameState;
@@ -33,8 +33,14 @@ pub fn delete_dead_units(game_state: &mut GameState) {
     }
 }
 
-pub fn attack_intents() {
-    
+pub fn attack_intents(game_state: &mut GameState, attack_intents: &Vec<UnitAttack>) {
+    for intent in attack_intents {
+        
+    }
+}
+
+pub fn can_attack(game_state: &GameState, intent: &UnitAttack) -> bool {
+    true
 }
 
 pub fn attack(attacker: &mut Unit, target: &mut Unit) {

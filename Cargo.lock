@@ -35,7 +35,7 @@ checksum = "5c6cb57a04249c6480766f7f7cef5467412af1490f8d1e243141daddada3264f"
 [[package]]
 name = "ashscript-types"
 version = "0.4.0"
-source = "git+https://github.com/Ashscript-Game/ashscript-types#1887f42c292b561bafa7d3f314ca740d6ede7dfa"
+source = "git+https://github.com/Ashscript-Game/ashscript-types#6859bdbb0727a3d38a9f4105fe87f28c1dff5add"
 dependencies = [
  "enum-map",
  "glam",
@@ -658,6 +658,7 @@ dependencies = [
  "serde_json",
  "socketioxide",
  "tokio",
+ "uuid",
 ]
 
 [[package]]

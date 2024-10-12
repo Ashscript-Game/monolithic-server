@@ -1,6 +1,10 @@
 use ashscript_types::{intents::{FactorySpawn, ResourceTransfer, TurretAttack, UnitAttack, UnitMove}, intents::{Intent, IntentName, Intents}};
 use enum_map::{enum_map, EnumMap};
 
+use crate::game_state::GameState;
+
+use super::bots::run_bots;
+
 /* pub type IntentsByAction = EnumMap<IntentName, Vec<Intent>>; */
 
 #[derive(Default)]
@@ -19,7 +23,14 @@ impl IntentsByAction {
         }
     }
 
-    pub fn add_intent(&mut self, intent: Intent) {
+    /// Adds the intents from `intents` to `self`, leaving `intents` empty
+    pub fn add_intents(&mut self, intents: &mut Intents) {
+        while let Some(intent) = intents.pop() {
+            self.add_intent(intent);
+        }
+    }
+
+    fn add_intent(&mut self, intent: Intent) {
         match intent {
             Intent::UnitMove(unit_move) => self.unit_move.push(unit_move),
             Intent::UnitAttack(unit_attack) => self.unit_attack.push(unit_attack),
@@ -30,13 +41,8 @@ impl IntentsByAction {
     }
 }
 
-/// Consumes a list of intents and returns a list of intents by action
-pub fn organize_intents(intents: &mut Intents) -> IntentsByAction {
-    let mut by_action = IntentsByAction::default();
+pub fn get_and_process_intents(game_state: &mut GameState) {
+    let intents_by_action = run_bots(game_state);
 
-    while let Some(intent) = intents.pop() {
-        by_action.add_intent(intent);
-    }
     
-    by_action
 }
