@@ -64,6 +64,12 @@ pub fn get_and_process_intents(game_state: &mut GameState) -> ActionsByKind {
         &intents_by_kind.turret_attack,
         &mut actions_by_kind,
     );
+    create_unit_attack_actions(
+        game_state,
+        &intents_by_kind.unit_attack,
+        &mut actions_by_kind,
+    );
+    create_unit_move_actions(game_state, &intents_by_kind.unit_move, &mut actions_by_kind);
 
     actions_by_kind
 }
@@ -193,7 +199,12 @@ fn create_unit_move_actions(
     }
 
     for intent in intents.iter() {
-        create_unit_move_action((intent.from, intent.to), &mut intents_from_to, game_state, actions_by_kind);
+        create_unit_move_action(
+            (intent.from, intent.to),
+            &mut intents_from_to,
+            game_state,
+            actions_by_kind,
+        );
     }
 }
 
@@ -230,10 +241,15 @@ fn create_unit_move_action(
             }
             GameObjectKind::Unit => {
                 if let Some(unit) = game_state.map.unit_at(&to) {
-
                     if let Some(next_to) = intents_from_to.get(&to) {
-                        if create_unit_move_action((to, *next_to), intents_from_to, game_state, actions_by_kind) == false {
-                            return false
+                        if create_unit_move_action(
+                            (to, *next_to),
+                            intents_from_to,
+                            game_state,
+                            actions_by_kind,
+                        ) == false
+                        {
+                            return false;
                         }
                     };
                 }
@@ -244,13 +260,11 @@ fn create_unit_move_action(
         }
     }
 
-    actions_by_kind.unit_move.push(actions::UnitMove {
-        from,
-        to,
-        cost,
-    });
+    actions_by_kind
+        .unit_move
+        .push(actions::UnitMove { from, to, cost });
 
-    return true
+    return true;
 }
 
 fn create_factory_spawn_unit_actions() {}
