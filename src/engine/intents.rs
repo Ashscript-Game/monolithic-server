@@ -88,17 +88,17 @@ fn create_turret_attack_actions(
         };
 
         match intent.target_kind {
-            Attackable::Unit(..) => {
+            Attackable::Unit => {
                 let Some(_) = game_state.map.unit_at_mut(&intent.target_hex) else {
                     continue;
                 };
             }
-            Attackable::Factory(..) => {
+            Attackable::Factory => {
                 let Some(_) = game_state.map.factory_at_mut(&intent.target_hex) else {
                     continue;
                 };
             }
-            Attackable::Turret(..) => {
+            Attackable::Turret => {
                 let Some(_) = game_state.map.turret_at_mut(&intent.target_hex) else {
                     continue;
                 };
@@ -142,17 +142,17 @@ fn create_unit_attack_actions(
         };
 
         match intent.target_kind {
-            Attackable::Unit(..) => {
+            Attackable::Unit => {
                 let Some(_) = game_state.map.unit_at_mut(&intent.target_hex) else {
                     continue;
                 };
             }
-            Attackable::Factory(..) => {
+            Attackable::Factory => {
                 let Some(_) = game_state.map.factory_at_mut(&intent.target_hex) else {
                     continue;
                 };
             }
-            Attackable::Turret(..) => {
+            Attackable::Turret => {
                 let Some(_) = game_state.map.turret_at_mut(&intent.target_hex) else {
                     continue;
                 };
