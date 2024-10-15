@@ -87,48 +87,21 @@ fn create_turret_attack_actions(
             (turret.damage(), cost)
         };
 
-        let damage = match intent.target_kind {
+        match intent.target_kind {
             Attackable::Unit(..) => {
                 let Some(target) = game_state.map.unit_at_mut(&intent.target_hex) else {
                     continue;
                 };
-
-                if target.future_health == 0 {
-                    continue;
-                }
-
-                let damage = max_damage.min(target.future_health);
-                target.future_health -= damage;
-
-                damage
             }
             Attackable::Factory(..) => {
                 let Some(target) = game_state.map.factory_at_mut(&intent.target_hex) else {
                     continue;
                 };
-
-                if target.future_health == 0 {
-                    continue;
-                }
-
-                let damage = max_damage.min(target.future_health);
-                target.future_health -= damage;
-
-                damage
             }
             Attackable::Turret(..) => {
                 let Some(target) = game_state.map.turret_at_mut(&intent.target_hex) else {
                     continue;
                 };
-
-                if target.future_health == 0 {
-                    continue;
-                }
-
-                let damage = max_damage.min(target.future_health);
-                target.future_health -= damage;
-
-                damage
             }
         };
 
@@ -168,50 +141,23 @@ fn create_unit_attack_actions(
             (unit.damage(), cost)
         };
 
-        /* let damage = match intent.target_kind {
+        match intent.target_kind {
             Attackable::Unit(..) => {
                 let Some(target) = game_state.map.unit_at_mut(&intent.target_hex) else {
                     continue;
                 };
-
-                if target.future_health == 0 {
-                    continue;
-                }
-
-                let damage = max_damage.min(target.future_health);
-                target.future_health -= damage;
-
-                damage
             }
             Attackable::Factory(..) => {
                 let Some(target) = game_state.map.factory_at_mut(&intent.target_hex) else {
                     continue;
                 };
-
-                if target.future_health == 0 {
-                    continue;
-                }
-
-                let damage = max_damage.min(target.future_health);
-                target.future_health -= damage;
-
-                damage
             }
             Attackable::Turret(..) => {
                 let Some(target) = game_state.map.turret_at_mut(&intent.target_hex) else {
                     continue;
                 };
-
-                if target.future_health == 0 {
-                    continue;
-                }
-
-                let damage = max_damage.min(target.future_health);
-                target.future_health -= damage;
-
-                damage
             }
-        }; */
+        };
 
         let Some(unit) = game_state.map.unit_at_mut(&intent.attacker_hex) else {
             continue;
