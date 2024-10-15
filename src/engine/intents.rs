@@ -1,9 +1,9 @@
 use ashscript_types::{
-    actions::{self, ActionsByKind, UnitMove},
+    actions::{self, ActionsByKind},
     constants::structures::IMPASSIBLE_GAME_OBJECTS,
     intents::{
         self, FactorySpawnUnit, Intent, IntentName, Intents, ResourceTransfer, TurretAttack,
-        UnitAttack, UnitMove, UnitSpawnUnit,
+        UnitAttack, UnitSpawnUnit,
     },
     objects::{Attackable, GameObjectKind},
 };
@@ -19,12 +19,12 @@ use super::bots::run_bots;
 /// Probably makes sense to just have bots return this directly, so that we don't have to construct it from the vec
 #[derive(Default)]
 pub struct IntentsByKind {
-    pub unit_move: Vec<UnitMove>,
-    pub unit_attack: Vec<UnitAttack>,
-    pub turret_attack: Vec<TurretAttack>,
-    pub factory_spawn_unit: Vec<FactorySpawnUnit>,
-    pub unit_spawn_unit: Vec<UnitSpawnUnit>,
-    pub resource_transfer: Vec<ResourceTransfer>,
+    pub unit_move: Vec<intents::UnitMove>,
+    pub unit_attack: Vec<intents::UnitAttack>,
+    pub turret_attack: Vec<intents::TurretAttack>,
+    pub factory_spawn_unit: Vec<intents::FactorySpawnUnit>,
+    pub unit_spawn_unit: Vec<intents::UnitSpawnUnit>,
+    pub resource_transfer: Vec<intents::ResourceTransfer>,
 }
 
 impl IntentsByKind {
