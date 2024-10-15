@@ -32,7 +32,7 @@ pub struct BotGameState {
 impl BotGameState {
     pub fn new(game_state: &GameState) -> Self {
         Self {
-            map: Map::new(),/* game_state.map.clone(), */
+            map: /* Map::new(), */game_state.map.clone(),
             ..Default::default()
         }
     }
