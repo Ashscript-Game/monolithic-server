@@ -74,7 +74,7 @@ fn create_turret_attack_actions(
     actions_by_kind: &mut ActionsByKind,
 ) {
     for intent in intents.iter() {
-        let (max_damage, cost) = {
+        let (damage, cost) = {
             let Some(turret) = game_state.map.turret_at(&intent.turret_hex) else {
                 continue;
             };
@@ -89,17 +89,17 @@ fn create_turret_attack_actions(
 
         match intent.target_kind {
             Attackable::Unit(..) => {
-                let Some(target) = game_state.map.unit_at_mut(&intent.target_hex) else {
+                let Some(_) = game_state.map.unit_at_mut(&intent.target_hex) else {
                     continue;
                 };
             }
             Attackable::Factory(..) => {
-                let Some(target) = game_state.map.factory_at_mut(&intent.target_hex) else {
+                let Some(_) = game_state.map.factory_at_mut(&intent.target_hex) else {
                     continue;
                 };
             }
             Attackable::Turret(..) => {
-                let Some(target) = game_state.map.turret_at_mut(&intent.target_hex) else {
+                let Some(_) = game_state.map.turret_at_mut(&intent.target_hex) else {
                     continue;
                 };
             }
@@ -143,17 +143,17 @@ fn create_unit_attack_actions(
 
         match intent.target_kind {
             Attackable::Unit(..) => {
-                let Some(target) = game_state.map.unit_at_mut(&intent.target_hex) else {
+                let Some(_) = game_state.map.unit_at_mut(&intent.target_hex) else {
                     continue;
                 };
             }
             Attackable::Factory(..) => {
-                let Some(target) = game_state.map.factory_at_mut(&intent.target_hex) else {
+                let Some(_) = game_state.map.factory_at_mut(&intent.target_hex) else {
                     continue;
                 };
             }
             Attackable::Turret(..) => {
-                let Some(target) = game_state.map.turret_at_mut(&intent.target_hex) else {
+                let Some(_) = game_state.map.turret_at_mut(&intent.target_hex) else {
                     continue;
                 };
             }
