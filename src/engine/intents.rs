@@ -154,7 +154,7 @@ fn create_unit_attack_actions(
     actions_by_kind: &mut ActionsByKind,
 ) {
     for intent in intents.iter() {
-        let (max_damage, cost) = {
+        let (damage, cost) = {
             let Some(unit) = game_state.map.unit_at_mut(&intent.attacker_hex) else {
                 continue;
             };
@@ -168,7 +168,7 @@ fn create_unit_attack_actions(
             (unit.damage(), cost)
         };
 
-        let damage = match intent.target_kind {
+        /* let damage = match intent.target_kind {
             Attackable::Unit(..) => {
                 let Some(target) = game_state.map.unit_at_mut(&intent.target_hex) else {
                     continue;
@@ -211,7 +211,7 @@ fn create_unit_attack_actions(
 
                 damage
             }
-        };
+        }; */
 
         let Some(unit) = game_state.map.unit_at_mut(&intent.attacker_hex) else {
             continue;
