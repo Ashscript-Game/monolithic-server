@@ -4,4 +4,4 @@ mod runner;
 mod turret;
 mod bots;
 mod factory;
-mod intents;
+pub mod intents;
