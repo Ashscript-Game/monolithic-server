@@ -1,12 +1,15 @@
 use ashscript_types::{
-    actions::{self, ActionsByKind},
+    actions::{self, ActionsByKind, UnitMove},
+    constants::structures::IMPASSIBLE_GAME_OBJECTS,
     intents::{
         self, FactorySpawnUnit, Intent, IntentName, Intents, ResourceTransfer, TurretAttack,
         UnitAttack, UnitMove, UnitSpawnUnit,
     },
-    objects::Attackable,
+    objects::{Attackable, GameObjectKind},
 };
 use enum_map::{enum_map, EnumMap};
+use hashbrown::HashMap;
+use hexx::Hex;
 
 use crate::game_state::GameState;
 
@@ -226,6 +229,82 @@ fn create_unit_attack_actions(
     }
 }
 
-fn create_unit_move_actions() {}
+fn create_unit_move_actions(
+    game_state: &mut GameState,
+    intents: &Vec<intents::UnitMove>,
+    actions_by_kind: &mut ActionsByKind,
+) {
+    // need a DFS travesal of move intents
+    //  for intent in intents
+    //    if unit that hasn't moved is at pos
+    //      if intent for unit at pos
+    //        try to move unit
+
+    // <From, To>
+    let mut intents_from_to: HashMap<Hex, Hex> = HashMap::new();
+    for intent in intents.iter() {
+        intents_from_to.insert(intent.from, intent.to);
+    }
+
+    for intent in intents.iter() {
+        create_unit_move_action((intent.from, intent.to), &mut intents_from_to, game_state, actions_by_kind);
+    }
+}
+
+fn create_unit_move_action(
+    (from, to): (Hex, Hex),
+    intents_from_to: &mut HashMap<Hex, Hex>,
+    game_state: &mut GameState,
+    actions_by_kind: &mut ActionsByKind,
+) -> bool {
+    let Some(unit) = game_state.map.unit_at_mut(&from) else {
+        return false;
+    };
+
+    let cost = unit.weight();
+    if cost > unit.energy {
+        return false;
+    }
+
+    let Some(chunk_to) = game_state.map.chunk_at(&to) else {
+        return false;
+    };
+
+    for kind in IMPASSIBLE_GAME_OBJECTS.iter() {
+        match kind {
+            GameObjectKind::Turret => {
+                if game_state.map.turret_at(&to).is_some() {
+                    return false;
+                }
+            }
+            GameObjectKind::Factory => {
+                if game_state.map.factory_at(&to).is_some() {
+                    return false;
+                }
+            }
+            GameObjectKind::Unit => {
+                if let Some(unit) = game_state.map.unit_at(&to) {
+
+                    if let Some(next_to) = intents_from_to.get(&to) {
+                        if create_unit_move_action((to, *next_to), intents_from_to, game_state, actions_by_kind) == false {
+                            return false
+                        }
+                    };
+                }
+            }
+            _ => {
+                return false;
+            }
+        }
+    }
+
+    actions_by_kind.unit_move.push(actions::UnitMove {
+        from,
+        to,
+        cost,
+    });
+
+    return true
+}
 
 fn create_factory_spawn_unit_actions() {}
