@@ -1,8 +1,8 @@
-use ashscript_types::intents::{self, Intents};
+use ashscript_types::intents::{Intents};
 
-use crate::game_state::{self, BotGameState};
+use crate::game_state::{BotGameState};
 
-use super::shared::{AiFeatures, BotMemory, UnitRole};
+use super::shared::{BotMemory, UnitRole};
 
 pub fn main(game_state: &BotGameState, memory: &mut BotMemory) -> Intents {
     let mut intents = Intents::default();

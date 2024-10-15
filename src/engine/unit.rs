@@ -1,6 +1,6 @@
 use std::u32;
 
-use ashscript_types::{actions::UnitAttack, intents::Intents, unit::{Unit, UnitPart}};
+use ashscript_types::{actions::UnitAttack, unit::Unit};
 use hexx::Hex;
 
 use crate::game_state::GameState;

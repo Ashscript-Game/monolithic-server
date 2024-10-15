@@ -2,12 +2,10 @@ use ashscript_types::{
     actions::{self, ActionsByKind},
     constants::structures::IMPASSIBLE_GAME_OBJECTS,
     intents::{
-        self, FactorySpawnUnit, Intent, IntentName, Intents, ResourceTransfer, TurretAttack,
-        UnitAttack, UnitSpawnUnit,
+        self, Intent, Intents,
     },
     objects::{Attackable, GameObjectKind},
 };
-use enum_map::{enum_map, EnumMap};
 use hashbrown::HashMap;
 use hexx::Hex;
 
@@ -76,7 +74,7 @@ pub fn get_and_process_intents(game_state: &mut GameState) -> ActionsByKind {
 
 fn create_turret_attack_actions(
     game_state: &mut GameState,
-    intents: &Vec<intents::TurretAttack>,
+    intents: &[intents::TurretAttack],
     actions_by_kind: &mut ActionsByKind,
 ) {
     for intent in intents.iter() {
@@ -129,7 +127,7 @@ fn create_turret_attack_actions(
 
 fn create_unit_attack_actions(
     game_state: &mut GameState,
-    intents: &Vec<intents::UnitAttack>,
+    intents: &[intents::UnitAttack],
     actions_by_kind: &mut ActionsByKind,
 ) {
     for intent in intents.iter() {
@@ -183,7 +181,7 @@ fn create_unit_attack_actions(
 
 fn create_unit_move_actions(
     game_state: &mut GameState,
-    intents: &Vec<intents::UnitMove>,
+    intents: &[intents::UnitMove],
     actions_by_kind: &mut ActionsByKind,
 ) {
     // need a DFS travesal of move intents
@@ -223,10 +221,6 @@ fn create_unit_move_action(
         return false;
     }
 
-    let Some(chunk_to) = game_state.map.chunk_at(&to) else {
-        return false;
-    };
-
     for kind in IMPASSIBLE_GAME_OBJECTS.iter() {
         match kind {
             GameObjectKind::Turret => {
@@ -240,14 +234,14 @@ fn create_unit_move_action(
                 }
             }
             GameObjectKind::Unit => {
-                if let Some(unit) = game_state.map.unit_at(&to) {
+                if game_state.map.unit_at(&to).is_some() {
                     if let Some(next_to) = intents_from_to.get(&to) {
-                        if create_unit_move_action(
+                        if !create_unit_move_action(
                             (to, *next_to),
                             intents_from_to,
                             game_state,
                             actions_by_kind,
-                        ) == false
+                        )
                         {
                             return false;
                         }
@@ -264,7 +258,9 @@ fn create_unit_move_action(
         .unit_move
         .push(actions::UnitMove { from, to, cost });
 
-    return true;
+    true
 }
 
-fn create_factory_spawn_unit_actions() {}
+fn create_factory_spawn_unit_actions() {
+
+}

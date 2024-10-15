@@ -1,7 +1,6 @@
-use std::default;
 
 use enum_map::{enum_map, Enum, EnumMap};
-use hashbrown::{HashMap, HashSet};
+use hashbrown::HashSet;
 use lazy_static::lazy_static;
 
 #[derive(Default)]
