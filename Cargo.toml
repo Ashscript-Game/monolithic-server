@@ -15,7 +15,7 @@ tokio = { version = "1.40.0", features = ["full"] }
 hashbrown = "0.15.0"
 hexx = "0.18.0"
 enum-map = "2.7.3"
-ashscript-types = { git = "https://github.com/Ashscript-Game/ashscript-types" }
+ashscript-types = { git = "https://github.com/Ashscript-Game/ashscript-types", branch = "main" }
 lazy_static="1.5.0"
 glam="0.27.0"
 uuid = "1.10.0"
