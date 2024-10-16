@@ -348,6 +348,41 @@ fn create_unit_spawn_unit_actions(
     }
 }
 
+// This should be a utility function somewhere
 fn find_unit_out(outs: &Option<Vec<Hex>>, from: Hex, game_state: &GameState) -> Option<Hex> {
-    Some(from)
+    if let Some(outs) = outs {
+        for out in outs.iter() {
+            for kind in IMPASSIBLE_GAME_OBJECTS.iter() {
+                let is_impassible = match kind {
+                    GameObjectKind::Turret => game_state.map.turret_at(out).is_some(),
+                    GameObjectKind::Factory => game_state.map.factory_at(out).is_some(),
+                    GameObjectKind::Unit => game_state.map.unit_at(out).is_some(),
+                    _ => false,
+                };
+
+                if !is_impassible {
+                    return Some(*out);
+                }
+            }
+        }
+
+        return None;
+    }
+
+    for out in from.all_neighbors() {
+        for kind in IMPASSIBLE_GAME_OBJECTS.iter() {
+            let is_impassible = match kind {
+                GameObjectKind::Turret => game_state.map.turret_at(&out).is_some(),
+                GameObjectKind::Factory => game_state.map.factory_at(&out).is_some(),
+                GameObjectKind::Unit => game_state.map.unit_at(&out).is_some(),
+                _ => false,
+            };
+
+            if !is_impassible {
+                return Some(out);
+            }
+        }
+    }
+
+    None
 }
