@@ -1,10 +1,9 @@
 use ashscript_types::{
     actions::{self, ActionsByKind},
     constants::structures::IMPASSIBLE_GAME_OBJECTS,
-    intents::{
-        self, Intent, Intents,
-    },
+    intents::{self, Intent, Intents},
     objects::{Attackable, GameObjectKind},
+    structures::factory,
 };
 use hashbrown::HashMap;
 use hexx::Hex;
@@ -68,6 +67,17 @@ pub fn get_and_process_intents(game_state: &mut GameState) -> ActionsByKind {
         &mut actions_by_kind,
     );
     create_unit_move_actions(game_state, &intents_by_kind.unit_move, &mut actions_by_kind);
+
+    create_factory_spawn_unit_actions(
+        game_state,
+        &intents_by_kind.factory_spawn_unit,
+        &mut actions_by_kind,
+    );
+    create_unit_spawn_unit_actions(
+        game_state,
+        &intents_by_kind.unit_spawn_unit,
+        &mut actions_by_kind,
+    );
 
     actions_by_kind
 }
@@ -241,8 +251,7 @@ fn create_unit_move_action(
                             intents_from_to,
                             game_state,
                             actions_by_kind,
-                        )
-                        {
+                        ) {
                             return false;
                         }
                     };
@@ -261,6 +270,84 @@ fn create_unit_move_action(
     true
 }
 
-fn create_factory_spawn_unit_actions() {
+fn create_factory_spawn_unit_actions(
+    game_state: &mut GameState,
+    intents: &[intents::FactorySpawnUnit],
+    actions_by_kind: &mut ActionsByKind,
+) {
+    for intent in intents.iter() {
+        let Some(factory) = game_state.map.factory_at(&intent.factory_hex) else {
+            continue;
+        };
 
+        let cost = intent.body.cost();
+        if !factory.storage.has_sufficient(&cost) {
+            continue;
+        }
+
+        let Some(out) = find_unit_out(&intent.out, intent.factory_hex, game_state) else {
+            continue;
+        };
+
+        let Some(factory) = game_state.map.factory_at_mut(&intent.factory_hex) else {
+            continue;
+        };
+
+        let Ok(()) = factory.storage.subtract_many_checked(&cost) else {
+            continue;
+        };
+
+        actions_by_kind
+            .factory_spawn_unit
+            .push(actions::FactorySpawnUnit {
+                factory_hex: intent.factory_hex,
+                out,
+                body: intent.body,
+                name: intent.name.clone(),
+                cost,
+            });
+    }
+}
+
+fn create_unit_spawn_unit_actions(
+    game_state: &mut GameState,
+    intents: &[intents::UnitSpawnUnit],
+    actions_by_kind: &mut ActionsByKind,
+) {
+    for intent in intents.iter() {
+        let Some(unit) = game_state.map.unit_at(&intent.unit_hex) else {
+            continue;
+        };
+
+        let cost = intent.body.cost();
+        if !unit.storage.has_sufficient(&cost) {
+            continue;
+        };
+
+        let Some(out) = find_unit_out(&intent.out, intent.unit_hex, game_state) else {
+            continue;
+        };
+
+        let Some(unit) = game_state.map.unit_at_mut(&intent.unit_hex) else {
+            continue;
+        };
+
+        let Ok(()) = unit.storage.subtract_many_checked(&cost) else {
+            continue;
+        };
+
+        actions_by_kind
+            .factory_spawn_unit
+            .push(actions::FactorySpawnUnit {
+                factory_hex: intent.unit_hex,
+                out,
+                body: intent.body,
+                name: intent.name.clone(),
+                cost,
+            });
+    }
+}
+
+fn find_unit_out(outs: &Option<Vec<Hex>>, from: Hex, game_state: &GameState) -> Option<Hex> {
+    Some(from)
 }
