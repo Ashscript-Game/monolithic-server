@@ -1,5 +1,7 @@
 use ashscript_types::intents::Intents;
 use axum::routing::get;
+use engine::{runner::runner, start::start};
+use game_state::GameState;
 use log::info;
 use logging::setup_logger;
 use socketioxide::SocketIo;
@@ -9,6 +11,7 @@ pub mod logging;
 pub mod engine;
 pub mod game_state;
 pub mod ai;
+pub mod simulations;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -20,24 +23,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     io.ns("/client", client::on_connect);
 
-    let app = axum::Router::new()
-        .route("/", get(|| async { "AshScript Monolith." }))
-        .layer(layer);
+    // let app = axum::Router::new()
+    //     .route("/", get(|| async { "AshScript Monolith." }))
+    //     .layer(layer);
 
-    info!("Starting axum / socketio server.");
+    // info!("Starting axum / socketio server.");
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
-    axum::serve(listener, app).await?;
+    // let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
+    // axum::serve(listener, app).await?;
+
+    start().await;
 
     Ok(())
-}
-
-trait IntentsExapansion {
-    fn turret_shoot();
-}
-
-impl IntentsExapansion for Intents {
-    fn turret_shoot() {
-
-    }
 }
