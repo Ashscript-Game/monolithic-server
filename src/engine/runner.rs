@@ -14,6 +14,7 @@ pub async fn runner(game_state: &mut GameState) {
 }
 
 pub async fn tick(game_state: &mut GameState) {
+    println!("\n starting tick: {}", game_state.global.tick);
 
     let actions_by_kind = get_and_process_intents(game_state);
 
@@ -26,6 +27,5 @@ pub async fn tick(game_state: &mut GameState) {
 
     game_state.global.tick += 1;
 
-    println!("tick: {}", game_state.global.tick);
     sleep(Duration::from_secs(1)).await;
 }

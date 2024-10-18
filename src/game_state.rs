@@ -21,25 +21,27 @@ impl GameState {
 #[derive(Default, Serialize)]
 pub struct BotGameState {
     pub map: Map,
-    pub me: Player,
+    pub global: Global,
+    pub me: Me,
 }
 
 impl BotGameState {
     pub fn new(game_state: &GameState) -> Self {
         Self {
             map: /* Map::new(), */game_state.map.clone(),
+            global: game_state.global.clone(),
             ..Default::default()
         }
     }
 }
 
 #[derive(Default, Debug, Serialize)]
-pub struct Player {
+pub struct Me {
     pub id: PlayerId,
     pub name: String,
 }
 
-impl Player {
+impl Me {
     pub fn new() -> Self {
         Self {
             ..Default::default()
@@ -75,8 +77,9 @@ pub struct Bot {
 }
 
 impl Bot {
-    pub fn new() -> Self {
+    pub fn new(player_id: PlayerId) -> Self {
         Self {
+            id: player_id,
             ..Default::default()
         }
     }

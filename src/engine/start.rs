@@ -4,6 +4,7 @@ use super::{generate::{map::generate_tiles, terrain::generate_terrain}, runner::
 
 pub async fn start() {
     let mut game_state = GameState::new();
+    game_state.map.radius = 100;
 
     generate_tiles(&mut game_state);
     generate_terrain(&mut game_state);

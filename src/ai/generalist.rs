@@ -16,6 +16,8 @@ pub fn main(game_state: &BotGameState, memory: &mut BotMemory) -> Intents {
 
     let mut bot_state = BotState::new();
 
+    println!("[generalist ai] tick: {}", game_state.global.tick);
+
     organize_units(game_state, memory, &mut bot_state);
 
     scouts_scout(game_state, memory);
@@ -202,7 +204,7 @@ fn move_unit(
             }));
         }
     } else {
-        println!("[basic combat ai] no path found");
+        println!("[generalist ai] no path found");
     }
 }
 
@@ -241,11 +243,15 @@ pub fn factories_spawn_units(
     memory: &mut BotMemory,
     intents: &mut Intents,
 ) {
+
     for chunk in game_state.map.chunks.values() {
         for factory in chunk.factories.values() {
+
             if factory.owner_id != game_state.me.id {
                 continue;
             };
+
+            println!("[generalist ai] trying to spawn a unit at ({}, {})", factory.hex.x, factory.hex.y);
 
             intents.push(Intent::FactorySpawnUnit(FactorySpawnUnit {
                 factory_hex: factory.hex,

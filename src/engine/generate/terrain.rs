@@ -14,7 +14,9 @@ pub fn generate_terrain(game_state: &mut GameState) {
             hex.y as f64, /* hex.x as f64, hex.y as f64 */
         ]);
 
-        let chunk = game_state.map.chunks.get_mut(&hex).unwrap();
+        let Some(chunk) = game_state.map.chunks.get_mut(&hex) else {
+            continue;
+        };
 
         if noise > resource_noise_tresholds::WALL.0 && noise < resource_noise_tresholds::WALL.1 {
             chunk.terrain.insert(hex, Terrain::Wall);
