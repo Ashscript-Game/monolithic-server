@@ -20,3 +20,4 @@ lazy_static = "1.5.0"
 glam = "0.27.0"
 uuid = { version = "1.10.0", features = ["v4"] }
 libnoise = "1.1.2"
+enum-iterator = "2.1.0"

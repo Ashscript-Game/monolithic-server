@@ -80,6 +80,8 @@ pub fn attackers_attack(
             continue;
         };
 
+        println!("[generalist ai] unit is trying to attack: {} at ({}, {})", unit.name, unit.hex.x, unit.hex.y);
+
         let nearby_enemy_hexes = find_enemy_hexes_in_range(game_state, *hex, unit.range());
 
         if let Some(enemy_hex) = nearby_enemy_hexes.first() {

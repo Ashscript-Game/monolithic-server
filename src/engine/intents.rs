@@ -205,7 +205,7 @@ fn create_unit_move_actions(
     for intent in intents.iter() {
         create_unit_move_action(
             (intent.from, intent.to),
-            &mut intents_from_to,
+            &intents_from_to,
             game_state,
             actions_by_kind,
         );
@@ -289,6 +289,7 @@ fn create_factory_spawn_unit_actions(
             continue;
         };
 
+        // should subtract from future_resources
         let Ok(()) = factory.storage.subtract_many_checked(&cost) else {
             continue;
         };
@@ -328,6 +329,7 @@ fn create_unit_spawn_unit_actions(
             continue;
         };
 
+        // should subtract from future_resources
         let Ok(()) = unit.storage.subtract_many_checked(&cost) else {
             continue;
         };

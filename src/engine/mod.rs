@@ -8,3 +8,4 @@ pub mod intents;
 mod actions;
 pub mod generate;
 pub mod start;
+mod game_objects;

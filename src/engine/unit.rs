@@ -1,6 +1,6 @@
 use std::u32;
 
-use ashscript_types::{actions::UnitAttack, unit::Unit};
+use ashscript_types::{actions::UnitAttack, player::PlayerId, unit::{Unit, UnitBody}};
 use hexx::Hex;
 
 use crate::game_state::GameState;
@@ -15,6 +15,18 @@ pub fn age_units(game_state: &mut GameState) {
 
 pub fn age(unit: &mut Unit) {
     unit.age += 1;
+}
+
+pub fn units_generate_energy(game_state: &mut GameState) {
+    for (_, chunk) in game_state.map.chunks.iter_mut() {
+        for (_, unit) in chunk.units.iter_mut() {
+            generate_energy(unit);
+        }
+    }
+}
+
+pub fn generate_energy(unit: &mut Unit) {
+    unit.energy += 1;
 }
 
 pub fn delete_dead_units(game_state: &mut GameState) {
@@ -68,6 +80,16 @@ pub fn attack(attacker: &mut Unit, target: &mut Unit) {
     attacker.energy -= cost;
 }
 
-pub fn spawn_unit(owner_id: u32, hex: Hex, game_state: &mut GameState,) {
+pub fn spawn_unit(hex: Hex, name: String, body: UnitBody, owner_id: PlayerId, game_state: &mut GameState,) {
+    let Some(chunk) = game_state.map.chunk_at_mut(&hex) else {
+        return;
+    };
 
+    chunk.units.insert(hex, Unit {
+        hex,
+        name,
+        body,
+        owner_id,
+        ..Default::default()
+    });
 }

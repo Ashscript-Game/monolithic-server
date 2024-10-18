@@ -34,9 +34,10 @@ checksum = "5c6cb57a04249c6480766f7f7cef5467412af1490f8d1e243141daddada3264f"
 
 [[package]]
 name = "ashscript-types"
-version = "0.8.18"
-source = "git+https://github.com/Ashscript-Game/ashscript-types?branch=main#c2c80d0cac47f7a37fff810d396cd9969601b6b7"
+version = "0.8.20"
+source = "git+https://github.com/Ashscript-Game/ashscript-types?branch=main#dcd75078e2292cbc8c4c174bb2c0ca8f41740500"
 dependencies = [
+ "enum-iterator",
  "enum-map",
  "enum_dispatch",
  "glam",
@@ -262,6 +263,26 @@ dependencies = [
  "tokio",
  "tokio-tungstenite",
  "tower 0.4.13",
+]
+
+[[package]]
+name = "enum-iterator"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c280b9e6b3ae19e152d8e31cf47f18389781e119d4013a2a2bb0180e5facc635"
+dependencies = [
+ "enum-iterator-derive",
+]
+
+[[package]]
+name = "enum-iterator-derive"
+version = "1.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a1ab991c1362ac86c61ab6f556cff143daa22e5a15e4e189df818b2fd19fe65b"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -686,6 +707,7 @@ version = "0.1.0"
 dependencies = [
  "ashscript-types",
  "axum",
+ "enum-iterator",
  "enum-map",
  "fern",
  "glam",
