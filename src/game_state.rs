@@ -1,4 +1,4 @@
-use ashscript_types::map::Map;
+use ashscript_types::{global::Global, map::Map};
 use hashbrown::HashMap;
 use serde::Serialize;
 use uuid::Uuid;
@@ -6,6 +6,7 @@ use uuid::Uuid;
 #[derive(Default)]
 pub struct GameState {
     pub map: Map,
+    pub global: Global,
     pub bots: Bots,
 }
 

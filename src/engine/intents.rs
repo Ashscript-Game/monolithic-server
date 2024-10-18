@@ -218,7 +218,7 @@ fn create_unit_move_actions(
 
 fn create_unit_move_action(
     (from, to): (Hex, Hex),
-    intents_from_to: &mut HashMap<Hex, Hex>,
+    intents_from_to: &HashMap<Hex, Hex>,
     game_state: &mut GameState,
     actions_by_kind: &mut ActionsByKind,
 ) -> bool {
@@ -385,4 +385,26 @@ fn find_unit_out(outs: &Option<Vec<Hex>>, from: Hex, game_state: &GameState) -> 
     }
 
     None
+}
+
+fn create_resource_transfer_actions(
+    game_state: &mut GameState,
+    intents: &[intents::ResourceTransfer],
+    actions_by_kind: &mut ActionsByKind,
+) {
+    for intent in intents.iter() {
+
+        // validation after discussion component system
+
+        actions_by_kind
+            .resource_transfer
+            .push(actions::ResourceTransfer {
+                resource: intent.resource,
+                from_kind: intent.from_kind,
+                to_kind: intent.to_kind,
+                from: intent.from_hex,
+                to_hex: intent.to_hex,
+                amount: intent.amount,
+            });
+    }
 }
