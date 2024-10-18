@@ -34,8 +34,8 @@ checksum = "5c6cb57a04249c6480766f7f7cef5467412af1490f8d1e243141daddada3264f"
 
 [[package]]
 name = "ashscript-types"
-version = "0.8.3"
-source = "git+https://github.com/Ashscript-Game/ashscript-types?branch=main#3aaf7f7970f3bfc5f9b6d0f7cbba11588ec418fa"
+version = "0.8.9"
+source = "git+https://github.com/Ashscript-Game/ashscript-types?branch=main#5e77bc572420d7a6ce723400ff99ae2f06794d08"
 dependencies = [
  "enum-map",
  "enum_dispatch",
@@ -231,6 +231,12 @@ dependencies = [
  "block-buffer",
  "crypto-common",
 ]
+
+[[package]]
+name = "either"
+version = "1.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "60b1af1c220855b6ceac025d3f6ecdd2b7c4894bfe9cd9bda4fbb4bc7c0d4cf0"
 
 [[package]]
 name = "engineioxide"
@@ -551,6 +557,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.10.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b0fd2260e829bddf4cb6ea802289de2f86d6a7a690192fbe91b3f46e0f2c8473"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -567,6 +582,18 @@ name = "libc"
 version = "0.2.159"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "561d97a539a36e26a9a5fad1ea11a3039a67714694aaa379433e580854bc3dc5"
+
+[[package]]
+name = "libnoise"
+version = "1.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9d1b9f58b23e77205b7133d982af32be303aba99a2bba82795a101724379f56"
+dependencies = [
+ "itertools",
+ "num-traits",
+ "rand",
+ "rand_chacha",
+]
 
 [[package]]
 name = "lock_api"
@@ -666,6 +693,7 @@ dependencies = [
  "hexx",
  "humantime",
  "lazy_static",
+ "libnoise",
  "log",
  "serde",
  "serde_json",
@@ -682,6 +710,15 @@ checksum = "77a8165726e8236064dbb45459242600304b42a5ea24ee2948e18e023bf7ba84"
 dependencies = [
  "overload",
  "winapi",
+]
+
+[[package]]
+name = "num-traits"
+version = "0.2.19"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841"
+dependencies = [
+ "autocfg",
 ]
 
 [[package]]

@@ -19,3 +19,4 @@ ashscript-types = { git = "https://github.com/Ashscript-Game/ashscript-types", b
 lazy_static="1.5.0"
 glam="0.27.0"
 uuid = "1.10.0"
+libnoise = "1.1.2"
