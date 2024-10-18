@@ -1,4 +1,4 @@
-use ashscript_types::{objects::GameObjectKind, player::Player};
+use ashscript_types::{objects::GameObjectKind, player::Player, resource::Resource};
 use hexx::hex;
 use uuid::{uuid, Uuid};
 
@@ -32,5 +32,10 @@ pub fn generate(game_state: &mut GameState) {
 
         let hex = factory_hexes[i];
         spawn_structure(game_state, hex, *player_id, GameObjectKind::Factory);
+
+        let factory = game_state.map.factory_at_mut(&hex).unwrap();
+        factory.storage.capacity = 10_000;
+
+        let _ = factory.storage.add_checked(&Resource::Metal, &1000);
     }
 }

@@ -1,9 +1,5 @@
 use ashscript_types::{
-    actions::{self, ActionsByKind},
-    constants::structures::IMPASSIBLE_GAME_OBJECTS,
-    intents::{self, Intent, Intents},
-    objects::{Attackable, GameObjectKind},
-    structures::factory,
+    actions::{self, ActionsByKind}, constants::structures::IMPASSIBLE_GAME_OBJECTS, intents::{self, Intent, Intents}, objects::{Attackable, GameObjectKind}, resource::Resource, structures::factory
 };
 use hashbrown::HashMap;
 use hexx::Hex;
@@ -279,12 +275,12 @@ fn create_factory_spawn_unit_actions(
         let Some(factory) = game_state.map.factory_at(&intent.factory_hex) else {
             continue;
         };
-
+        println!("cost check {:?}", factory.storage.resources.get(&Resource::Metal));
         let cost = intent.body.cost();
         if !factory.storage.has_sufficient(&cost) {
             continue;
         }
-
+        println!("succeeded cost check");
         let Some(out) = find_unit_out(&intent.out, intent.factory_hex, game_state) else {
             continue;
         };

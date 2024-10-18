@@ -34,8 +34,8 @@ checksum = "5c6cb57a04249c6480766f7f7cef5467412af1490f8d1e243141daddada3264f"
 
 [[package]]
 name = "ashscript-types"
-version = "0.8.16"
-source = "git+https://github.com/Ashscript-Game/ashscript-types?branch=main#eb80cbac36bbb3a224333285c6ff59d91a21ff71"
+version = "0.8.17"
+source = "git+https://github.com/Ashscript-Game/ashscript-types?branch=main#1a99d239adaadcd2b050dffde6e40602e686dcfb"
 dependencies = [
  "enum-map",
  "enum_dispatch",
