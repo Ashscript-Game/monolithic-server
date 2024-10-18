@@ -255,16 +255,17 @@ pub fn factories_spawn_units(
 
             println!("[generalist ai] trying to spawn a unit at ({}, {})", factory.hex.x, factory.hex.y);
 
+            let parts = vec![
+                (UnitPart::Generate, 5),
+                (UnitPart::Ranged, 1),
+                (UnitPart::Shield, 1),
+            ];
+
             intents.push(Intent::FactorySpawnUnit(FactorySpawnUnit {
                 factory_hex: factory.hex,
                 out: None,
                 name: "attacker".to_string(),
-                body: UnitBody(enum_map! {
-                    UnitPart::Generate => 5,
-                    UnitPart::Ranged => 1,
-                    UnitPart::Shield => 1,
-                    _ => 0,
-                }),
+                body: UnitBody::from_vec(parts),
             }));
         }
     }

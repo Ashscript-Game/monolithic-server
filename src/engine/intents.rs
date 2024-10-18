@@ -222,7 +222,7 @@ fn create_unit_move_action(
         return false;
     };
 
-    let cost = unit.weight();
+    let cost = unit.body.weight();
     if cost > unit.energy {
         return false;
     }
