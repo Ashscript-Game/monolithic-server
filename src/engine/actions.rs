@@ -72,6 +72,18 @@ fn process_factory_spawn_unit_actions(
             continue;
         };
 
-        spawn_unit(action.out, action.name.clone(), action.body, factory.owner_id, game_state);
+        if let Some(unit) = game_state.map.unit_at(&action.out) {
+            println!("UNIT ALREADY AT HEX TRYING TO SPAWN TO")
+        }
+
+        let factory = game_state.map.factory_at(&action.factory_hex).unwrap();
+
+        spawn_unit(
+            action.out,
+            action.name.clone(),
+            action.body,
+            factory.owner_id,
+            game_state,
+        );
     }
 }

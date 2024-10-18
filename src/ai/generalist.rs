@@ -41,6 +41,9 @@ pub fn spawn_units(game_state: &BotGameState, memory: &mut BotMemory) {
 pub fn organize_units(game_state: &BotGameState, memory: &mut BotMemory, bot_state: &mut BotState) {
     for chunk in game_state.map.chunks.values() {
         for unit in chunk.units.values() {
+
+            println!("[generalist ai] found unit: {} at ({}, {})", unit.name, unit.hex.x, unit.hex.y);
+
             if unit.owner_id != game_state.me.id {
                 continue;
             };

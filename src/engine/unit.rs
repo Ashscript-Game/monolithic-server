@@ -1,6 +1,10 @@
 use std::u32;
 
-use ashscript_types::{actions::UnitAttack, player::PlayerId, unit::{Unit, UnitBody}};
+use ashscript_types::{
+    actions::UnitAttack,
+    player::PlayerId,
+    unit::{Unit, UnitBody},
+};
 use hexx::Hex;
 
 use crate::game_state::GameState;
@@ -30,25 +34,22 @@ pub fn generate_energy(unit: &mut Unit) {
 }
 
 pub fn delete_dead_units(game_state: &mut GameState) {
-
     for (_, chunk) in game_state.map.chunks.iter_mut() {
         chunk.units.retain(|_, unit| {
             if unit.age >= unit.max_age() {
-                return false
+                return false;
             }
             if unit.health == 0 {
-                return false
+                return false;
             }
-    
+
             true
         });
     }
 }
 
 pub fn attack_intents(game_state: &mut GameState, attack_intents: &Vec<UnitAttack>) {
-    for intent in attack_intents {
-        
-    }
+    for intent in attack_intents {}
 }
 
 pub fn can_attack(game_state: &GameState, intent: &UnitAttack) -> bool {
@@ -80,16 +81,18 @@ pub fn attack(attacker: &mut Unit, target: &mut Unit) {
     attacker.energy -= cost;
 }
 
-pub fn spawn_unit(hex: Hex, name: String, body: UnitBody, owner_id: PlayerId, game_state: &mut GameState,) {
+pub fn spawn_unit(
+    hex: Hex,
+    name: String,
+    body: UnitBody,
+    owner_id: PlayerId,
+    game_state: &mut GameState,
+) {
     let Some(chunk) = game_state.map.chunk_at_mut(&hex) else {
         return;
     };
 
-    chunk.units.insert(hex, Unit {
-        hex,
-        name,
-        body,
-        owner_id,
-        ..Default::default()
-    });
+    chunk
+        .units
+        .insert(hex, Unit::new(hex, name, body, owner_id));
 }

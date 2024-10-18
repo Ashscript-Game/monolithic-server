@@ -347,6 +347,7 @@ fn create_unit_spawn_unit_actions(
 }
 
 // This should be a utility function somewhere
+// Doesn't seem to account for units that have created an action to move to the hex
 fn find_unit_out(outs: &Option<Vec<Hex>>, from: Hex, game_state: &GameState) -> Option<Hex> {
     if let Some(outs) = outs {
         for out in outs.iter() {
