@@ -4,8 +4,11 @@ use hexx::Hex;
 
 use crate::game_state::GameState;
 
+use super::unit::spawn_unit;
+
 pub fn process_actions(game_state: &mut GameState, actions: &ActionsByKind) {
     process_move_actions(game_state, &actions.unit_move);
+    process_factory_spawn_unit_actions(game_state, &actions.factory_spawn_unit);
 }
 
 fn process_move_actions(game_state: &mut GameState, actions: &[actions::UnitMove]) {
@@ -54,4 +57,21 @@ fn process_move_action(
 
     unit.energy -= cost;
     new_chunk.units.insert(to, unit);
+}
+
+fn process_factory_spawn_unit_actions(
+    game_state: &mut GameState,
+    actions: &[actions::FactorySpawnUnit],
+) {
+    for action in actions.iter() {
+        let Some(factory) = game_state.map.factory_at_mut(&action.factory_hex) else {
+            continue;
+        };
+
+        let Ok(()) = factory.storage.subtract_many_checked(&action.cost) else {
+            continue;
+        };
+
+        spawn_unit(action.out, action.name.clone(), action.body, factory.owner_id, game_state);
+    }
 }
