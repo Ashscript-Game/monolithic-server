@@ -17,10 +17,10 @@ pub fn run_bots(game_state: &mut game_state::GameState) -> IntentsByKind {
 
     for (bot_id, script) in bot_scripts {
 
-        let Some(_) = game_state.bots.get_mut(&bot_id) else { continue };
+        let Some(bot) = game_state.bots.get_mut(&bot_id) else { continue };
 
         // Need to convert agnostic bot memory into known bot memory
-        let mut new_intents = script(&bot_game_state, &mut BotMemory::new());
+        let mut new_intents = script(&bot_game_state, &mut BotMemory::new()/* bot.memory */);
         intents_by_action.add_intents(&mut new_intents);
     }
 
@@ -30,8 +30,8 @@ pub fn run_bots(game_state: &mut game_state::GameState) -> IntentsByKind {
 fn get_player_scripts(game_state: &mut GameState) -> PlayerScripts {
     let mut scripts: PlayerScripts = HashMap::new();
 
-    for bot in game_state.bots.values() {
-        scripts.insert(bot.id, generalist::main);
+    for player_id in game_state.global.players.keys() {
+        scripts.insert(*player_id, generalist::main);
     }
 
     scripts
