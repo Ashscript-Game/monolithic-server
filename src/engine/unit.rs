@@ -3,6 +3,7 @@ use std::u32;
 use ashscript_types::{
     actions::UnitAttack,
     player::PlayerId,
+    resource::Resource,
     unit::{Unit, UnitBody},
 };
 use hexx::Hex;
@@ -12,25 +13,21 @@ use crate::game_state::GameState;
 pub fn age_units(game_state: &mut GameState) {
     for (_, chunk) in game_state.map.chunks.iter_mut() {
         for (_, unit) in chunk.units.iter_mut() {
-            age(unit);
+            unit.age += 1;
+
+            // Age also increases based on how much uranium is being carried
+            unit.age -= unit.storage.resources.get(&Resource::Uranium).unwrap_or(&0) / 100;
         }
     }
-}
-
-pub fn age(unit: &mut Unit) {
-    unit.age += 1;
 }
 
 pub fn units_generate_energy(game_state: &mut GameState) {
     for (_, chunk) in game_state.map.chunks.iter_mut() {
         for (_, unit) in chunk.units.iter_mut() {
-            generate_energy(unit);
+            unit.energy =
+                (unit.energy + unit.body.energy_income()).max(unit.body.energy_capacity());
         }
     }
-}
-
-pub fn generate_energy(unit: &mut Unit) {
-    unit.energy += 1;
 }
 
 pub fn delete_dead_units(game_state: &mut GameState) {
