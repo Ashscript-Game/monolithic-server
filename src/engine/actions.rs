@@ -1,6 +1,6 @@
 use ashscript_types::{
     actions::{self, ActionsByKind},
-    objects::Attackable,
+    objects::{Attackable, WithStorage},
 };
 use hashbrown::HashMap;
 use hexx::Hex;
@@ -14,6 +14,7 @@ pub fn process_actions(game_state: &mut GameState, actions: &ActionsByKind) {
     process_factory_spawn_unit_actions(game_state, &actions.factory_spawn_unit);
     process_unit_attack_actions(game_state, &actions.unit_attack);
     process_turret_attack_actions(game_state, &actions.turret_attack);
+    process_resource_transfer_actions(game_state, &actions.resource_transfer);
 }
 
 fn process_move_actions(game_state: &mut GameState, actions: &[actions::UnitMove]) {
@@ -158,5 +159,74 @@ fn process_factory_spawn_unit_actions(
             factory.owner_id,
             game_state,
         );
+    }
+}
+
+fn process_resource_transfer_actions(
+    game_state: &mut GameState,
+    actions: &[actions::ResourceTransfer],
+) {
+    for action in actions.iter() {
+
+        // Make sure that the sender exists
+
+        match action.from_kind {
+            WithStorage::Unit => {
+                if game_state.map.unit_at(&action.from).is_none() {
+                    continue;
+                };
+            }
+            WithStorage::Factory => {
+                if game_state.map.factory_at(&action.from).is_none() {
+                    continue;
+                };
+            }
+        }
+        
+        // Check if the receiver exists, if so add the resources
+
+        match action.to_kind {
+            WithStorage::Unit => {
+                let Some(object) = game_state.map.unit_at_mut(&action.to_hex) else {
+                    continue;
+                };
+
+                if object.storage.add_checked(&action.resource, &action.amount).is_err() {
+                    continue;
+                }
+            }
+            WithStorage::Factory => {
+                let Some(object) = game_state.map.factory_at_mut(&action.to_hex) else {
+                    continue;
+                };
+
+                if object.storage.add_checked(&action.resource, &action.amount).is_err() {
+                    continue;
+                }
+            }
+        }
+
+        // Remove the sender's resources
+
+        match action.from_kind {
+            WithStorage::Unit => {
+                let Some(object) = game_state.map.unit_at_mut(&action.from) else {
+                    continue;
+                };
+
+                if object.storage.subtract_checked(&action.resource, &action.amount).is_err() {
+                    continue;
+                }
+            }
+            WithStorage::Factory => {
+                let Some(object) = game_state.map.factory_at_mut(&action.from) else {
+                    continue;
+                };
+
+                if object.storage.subtract_checked(&action.resource, &action.amount).is_err() {
+                    continue;
+                }
+            }
+        }
     }
 }
