@@ -1,5 +1,10 @@
 use ashscript_types::{
-    actions::{self, ActionsByKind}, constants::structures::IMPASSIBLE_GAME_OBJECTS, intents::{self, Intent, Intents}, objects::{Attackable, GameObjectKind, WithStorage}, resource::Resource, structures::factory
+    actions::{self, ActionsByKind},
+    constants::structures::IMPASSIBLE_GAME_OBJECTS,
+    intents::{self, Intent, Intents},
+    objects::{Attackable, GameObjectKind, WithStorage},
+    resource::Resource,
+    structures::factory,
 };
 use hashbrown::HashMap;
 use hexx::Hex;
@@ -72,6 +77,11 @@ pub fn get_and_process_intents(game_state: &mut GameState) -> ActionsByKind {
     create_unit_spawn_unit_actions(
         game_state,
         &intents_by_kind.unit_spawn_unit,
+        &mut actions_by_kind,
+    );
+    create_resource_transfer_actions(
+        game_state,
+        &intents_by_kind.resource_transfer,
         &mut actions_by_kind,
     );
 
@@ -278,7 +288,10 @@ fn create_factory_spawn_unit_actions(
         let Some(factory) = game_state.map.factory_at(&intent.factory_hex) else {
             continue;
         };
-        println!("cost check {:?}", factory.storage.resources.get(&Resource::Metal));
+        println!(
+            "cost check {:?}",
+            factory.storage.resources.get(&Resource::Metal)
+        );
         let cost = intent.body.cost();
         if !factory.storage.has_sufficient_many(&cost) {
             continue;
@@ -395,13 +408,17 @@ fn create_resource_transfer_actions(
     actions_by_kind: &mut ActionsByKind,
 ) {
     for intent in intents.iter() {
+        // Check if the sender has sufficient resources to send
 
         match intent.from_kind {
             WithStorage::Factory => {
                 let Some(factory) = game_state.map.factory_at(&intent.from_hex) else {
                     continue;
                 };
-                if !factory.storage.has_sufficient(&intent.resource, &intent.amount) {
+                if !factory
+                    .storage
+                    .has_sufficient(&intent.resource, &intent.amount)
+                {
                     continue;
                 };
             }
@@ -409,12 +426,71 @@ fn create_resource_transfer_actions(
                 let Some(unit) = game_state.map.unit_at(&intent.from_hex) else {
                     continue;
                 };
-                if !unit.storage.has_sufficient(&intent.resource, &intent.amount) {
+                if !unit
+                    .storage
+                    .has_sufficient(&intent.resource, &intent.amount)
+                {
                     continue;
                 };
             }
             _ => {
                 continue;
+            }
+        }
+
+        // Check if the receiver has sufficient capacity and is allowed to receive the resource
+
+        match intent.to_kind {
+            WithStorage::Factory => {
+                let Some(factory) = game_state.map.factory_at(&intent.to_hex) else {
+                    continue;
+                };
+                if factory.storage.is_allowed(&intent.resource) {
+                    continue;
+                }
+                if factory.storage.capacity < intent.amount {
+                    continue;
+                }
+            }
+            WithStorage::Unit => {
+                let Some(unit) = game_state.map.unit_at(&intent.to_hex) else {
+                    continue;
+                };
+                if unit.storage.is_allowed(&intent.resource) {
+                    continue;
+                }
+                if unit.storage.capacity < intent.amount {
+                    continue;
+                }
+            }
+        }
+
+        // The transfer is valid
+
+        match intent.from_kind {
+            WithStorage::Factory => {
+                let Some(factory) = game_state.map.factory_at_mut(&intent.from_hex) else {
+                    continue;
+                };
+                if factory
+                    .storage
+                    .subtract_checked(&intent.resource, &intent.amount)
+                    .is_err()
+                {
+                    continue;
+                };
+            }
+            WithStorage::Unit => {
+                let Some(unit) = game_state.map.unit_at_mut(&intent.from_hex) else {
+                    continue;
+                };
+                if unit
+                    .storage
+                    .subtract_checked(&intent.resource, &intent.amount)
+                    .is_err()
+                {
+                    continue;
+                };
             }
         }
 
