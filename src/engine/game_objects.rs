@@ -1,4 +1,4 @@
-use ashscript_types::objects::{Attackable, HasHealth, HasStorage, WithEnergy, WithStorage};
+use ashscript_types::objects::{Attackable, WithEnergy, WithStorage};
 use enum_iterator::all;
 
 use crate::game_state::GameState;
@@ -12,11 +12,6 @@ pub fn update_resources(game_state: &mut GameState) {
                 WithStorage::Unit => {
                     for (_, unit) in chunk.units.iter_mut() {
                         unit.storage.future_resources = unit.storage.resources.clone();
-                    }
-                }
-                WithStorage::Turret => {
-                    for (_, turret) in chunk.turrets.iter_mut() {
-                        turret.storage.future_resources = turret.storage.resources.clone();
                     }
                 }
                 WithStorage::Factory => {
