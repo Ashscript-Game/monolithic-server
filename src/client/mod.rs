@@ -15,13 +15,15 @@ pub async fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
     );
 
     let game_state = GameState::new();
-    let bot_game_state = BotGameState::new(&game_state);
 
     loop {
         socket
             .emit(
-                "keyframe",
-                serde_json::json!(bot_game_state)
+                "game",
+                serde_json::json!({
+                    "map": game_state.map,
+                    "global": game_state.global,
+                })
             )
             .unwrap();
 

@@ -143,8 +143,11 @@ fn create_unit_attack_actions(
             };
 
             let cost = unit.attack_cost();
-
             if unit.energy < cost {
+                continue;
+            }
+
+            if unit.hex.unsigned_distance_to(intent.target_hex) > unit.range() {
                 continue;
             }
 

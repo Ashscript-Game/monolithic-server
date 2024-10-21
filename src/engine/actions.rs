@@ -1,4 +1,7 @@
-use ashscript_types::actions::{self, ActionsByKind};
+use ashscript_types::{
+    actions::{self, ActionsByKind},
+    objects::Attackable,
+};
 use hashbrown::HashMap;
 use hexx::Hex;
 
@@ -9,6 +12,8 @@ use super::unit::spawn_unit;
 pub fn process_actions(game_state: &mut GameState, actions: &ActionsByKind) {
     process_move_actions(game_state, &actions.unit_move);
     process_factory_spawn_unit_actions(game_state, &actions.factory_spawn_unit);
+    process_unit_attack_actions(game_state, &actions.unit_attack);
+    process_turret_attack_actions(game_state, &actions.turret_attack);
 }
 
 fn process_move_actions(game_state: &mut GameState, actions: &[actions::UnitMove]) {
@@ -57,6 +62,74 @@ fn process_move_action(
 
     unit.energy -= cost;
     new_chunk.units.insert(to, unit);
+}
+
+fn process_unit_attack_actions(game_state: &mut GameState, actions: &[actions::UnitAttack]) {
+    for action in actions.iter() {
+        let Some(attacker) = game_state.map.unit_at_mut(&action.attacker_hex) else {
+            continue;
+        };
+
+        attacker.energy -= action.cost;
+
+        match action.target_kind {
+            Attackable::Unit => {
+                let Some(target) = game_state.map.unit_at_mut(&action.target_hex) else {
+                    continue;
+                };
+
+                target.health -= action.damage;
+            }
+            Attackable::Factory => {
+                let Some(target) = game_state.map.factory_at_mut(&action.target_hex) else {
+                    continue;
+                };
+
+                target.health -= action.damage;
+            }
+            Attackable::Turret => {
+                let Some(target) = game_state.map.turret_at_mut(&action.target_hex) else {
+                    continue;
+                };
+
+                target.health -= action.damage;
+            }
+        }
+    }
+}
+
+fn process_turret_attack_actions(game_state: &mut GameState, actions: &[actions::TurretAttack]) {
+    for action in actions.iter() {
+        let Some(turret) = game_state.map.turret_at_mut(&action.turret_hex) else {
+            continue;
+        };
+
+        turret.energy -= action.cost;
+
+        match action.target_kind {
+            Attackable::Unit => {
+                let Some(target) = game_state.map.unit_at_mut(&action.target_hex) else {
+                    continue;
+                };
+
+                target.health -= action.damage;
+            }
+            Attackable::Factory => {
+                let Some(target) = game_state.map.factory_at_mut(&action.target_hex) else {
+                    continue;
+                };
+
+                target.health -= action.damage;
+            }
+            Attackable::Turret => {
+                let Some(target) = game_state.map.turret_at_mut(&action.target_hex) else {
+                    continue;
+                };
+
+                target.health -= action.damage;
+            }
+        }
+    }
 }
 
 fn process_factory_spawn_unit_actions(

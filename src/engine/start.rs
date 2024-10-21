@@ -1,4 +1,4 @@
-use crate::{game_state::GameState, simulations};
+use crate::{game_state::{BotGameState, GameState}, simulations};
 
 use super::{generate::{map::generate_tiles, terrain::generate_terrain}, runner::runner};
 

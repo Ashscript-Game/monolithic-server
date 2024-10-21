@@ -49,6 +49,7 @@ pub fn organize_units(game_state: &BotGameState, memory: &mut BotMemory, bot_sta
             };
 
             let role = match unit.name.as_str() {
+                "leader" => UnitRole::Leader,
                 "attacker" => UnitRole::Attacker,
                 "scout" => UnitRole::Scout,
                 "defender" => UnitRole::Defender,

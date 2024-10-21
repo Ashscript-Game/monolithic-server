@@ -69,6 +69,7 @@ lazy_static! {
 
 #[derive(Enum, Debug, Clone, Copy, Eq, PartialEq)]
 pub enum UnitRole {
+    Leader,
     Scout,
     Extractor,
     Attacker,
