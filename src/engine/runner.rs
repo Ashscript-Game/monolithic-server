@@ -1,19 +1,27 @@
 use std::time::Duration;
 
+use socketioxide::SocketIo;
 use tokio::time::sleep;
 
-use crate::{engine::{actions::process_actions, game_objects::{update_energy, update_health, update_resources}, unit::units_generate_energy}, game_state::GameState};
+use crate::{
+    engine::{
+        actions::process_actions, client::{basic_emit, emit_tick}, game_objects::{update_energy, update_health, update_resources}, unit::units_generate_energy
+    },
+    game_state::GameState,
+};
 
-use super::{intents::get_and_process_intents, unit::{age_units, delete_dead_units}};
+use super::{
+    intents::get_and_process_intents,
+    unit::{age_units, delete_dead_units},
+};
 
-pub async fn runner(game_state: &mut GameState) {
-
+pub async fn runner(game_state: &mut GameState, io: &SocketIo) {
     loop {
-        tick(game_state).await;
+        tick(game_state, io).await;
     }
 }
 
-pub async fn tick(game_state: &mut GameState) {
+pub async fn tick(game_state: &mut GameState, io: &SocketIo) {
     println!("\n starting tick: {}", game_state.global.tick);
 
     let actions_by_kind = get_and_process_intents(game_state);
@@ -31,6 +39,8 @@ pub async fn tick(game_state: &mut GameState) {
     update_health(game_state);
 
     game_state.global.tick += 1;
+
+    emit_tick(game_state, io);
 
     sleep(Duration::from_secs(1)).await;
 }

@@ -1,8 +1,12 @@
+use std::io;
+
+use socketioxide::SocketIo;
+
 use crate::{game_state::{BotGameState, GameState}, simulations};
 
-use super::{generate::{map::generate_tiles, terrain::generate_terrain}, runner::runner};
+use super::{client, generate::{map::generate_tiles, terrain::generate_terrain}, runner::runner};
 
-pub async fn start() {
+pub async fn start(io: &SocketIo) {
     let mut game_state = GameState::new();
     game_state.map.radius = 100;
 
@@ -11,5 +15,7 @@ pub async fn start() {
 
     simulations::basic::generate(&mut game_state);
 
-    runner(&mut game_state).await;
+    io.ns("/client", client::on_connect);
+
+    runner(&mut game_state, io).await;
 }

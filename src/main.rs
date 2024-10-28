@@ -1,16 +1,17 @@
+use std::future::poll_fn;
+
 use ashscript_types::intents::Intents;
 use axum::routing::get;
 use engine::{runner::runner, start::start};
-use game_state::GameState;
+use game_state::{BotGameState, GameState};
 use log::info;
 use logging::setup_logger;
 use socketioxide::SocketIo;
 
-pub mod client;
-pub mod logging;
+pub mod ai;
 pub mod engine;
 pub mod game_state;
-pub mod ai;
+pub mod logging;
 pub mod simulations;
 
 #[tokio::main]
@@ -19,20 +20,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     info!("Welcome to the AshScript monolithic server. Starting web-services.");
 
-    let (layer, io) = SocketIo::builder().build_layer();
+    let (layer, io) = SocketIo::builder()
+        .with_state(BotGameState::new(&GameState::new()))
+        .build_layer();
 
-    io.ns("/client", client::on_connect);
+    let app = axum::Router::new()
+        .route(
+            "/",
+            get(move || async move {
+                start(&io).await;
+                "AshScript Monolith."
+            }),
+        )
+        .layer(layer);
 
-    // let app = axum::Router::new()
-    //     .route("/", get(|| async { "AshScript Monolith." }))
-    //     .layer(layer);
+    info!("Starting axum / socketio server.");
 
-    // info!("Starting axum / socketio server.");
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
+    let _ = axum::serve(listener, app).await?;
 
-    // let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
-    // axum::serve(listener, app).await?;
-
-    start().await;
+    // start(&io).await;
 
     Ok(())
 }

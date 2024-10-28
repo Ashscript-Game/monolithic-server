@@ -3,7 +3,7 @@ use hashbrown::HashMap;
 use serde::Serialize;
 use uuid::Uuid;
 
-#[derive(Default)]
+#[derive(Default, Clone, Serialize)]
 pub struct GameState {
     pub map: Map,
     pub global: Global,
@@ -18,7 +18,7 @@ impl GameState {
     }
 }
 
-#[derive(Default, Serialize)]
+#[derive(Default, Serialize, Clone)]
 pub struct BotGameState {
     pub map: Map,
     pub global: Global,
@@ -35,7 +35,7 @@ impl BotGameState {
     }
 }
 
-#[derive(Default, Debug, Serialize)]
+#[derive(Default, Debug, Serialize, Clone)]
 pub struct Me {
     pub id: PlayerId,
     pub name: String,
@@ -69,7 +69,7 @@ impl Me {
 //     }
 // }
 
-#[derive(Default)]
+#[derive(Default, Clone, Serialize)]
 pub struct Bot {
     pub id: PlayerId,
     /// For internal persistent storage
