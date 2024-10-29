@@ -5,7 +5,7 @@ use tokio::time::sleep;
 
 use crate::{
     engine::{
-        actions::process_actions, client::{basic_emit, emit_tick}, game_objects::{update_energy, update_health, update_resources}, unit::units_generate_energy
+        actions::process_actions, client::emit_tick, game_objects::{update_energy, update_health, update_resources}, unit::units_generate_energy
     },
     game_state::GameState,
 };

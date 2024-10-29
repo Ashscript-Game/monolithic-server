@@ -4,7 +4,6 @@ use ashscript_types::{
     terrain::Terrain,
     unit::{Unit, UnitBody, UnitPart},
 };
-use enum_map::enum_map;
 use hexx::{shapes, Hex};
 
 use crate::game_state::BotGameState;

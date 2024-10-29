@@ -4,7 +4,6 @@ use ashscript_types::{
     intents::{self, Intent, Intents},
     objects::{Attackable, GameObjectKind, WithStorage},
     resource::Resource,
-    structures::factory,
 };
 use hashbrown::HashMap;
 use hexx::Hex;

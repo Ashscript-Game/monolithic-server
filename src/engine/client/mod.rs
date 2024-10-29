@@ -1,17 +1,13 @@
-use std::time::Duration;
 
-use ashscript_types::{keyframe::KeyFrame, map::Map};
-use hashbrown::HashMap;
-use hexx::{hex, Hex};
-use log::info;
+use ashscript_types::keyframe::KeyFrame;
+use log::{error, info};
 use serde_json::Value;
 use socketioxide::{
     extract::{Data, SocketRef},
     SocketIo,
 };
-use tokio::time::sleep;
 
-use crate::game_state::{BotGameState, GameState};
+use crate::game_state::GameState;
 
 pub async fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
     info!(
@@ -116,3 +112,4 @@ pub fn basic_emit(game_state: &mut GameState, io: &SocketIo) {
 
     println!("basic emit");
 }
+

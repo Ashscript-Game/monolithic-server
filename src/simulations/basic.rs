@@ -1,6 +1,6 @@
 use ashscript_types::{objects::GameObjectKind, player::Player, resource::Resource};
 use hexx::hex;
-use uuid::{uuid, Uuid};
+use uuid::Uuid;
 
 use crate::{engine::generate::structures::spawn_structure, game_state::GameState};
 

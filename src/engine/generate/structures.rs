@@ -1,4 +1,4 @@
-use ashscript_types::{constants::map::CHUNK_SIZE, objects::GameObjectKind, player::PlayerId, structures::{factory::Factory, turret::Turret}};
+use ashscript_types::{objects::GameObjectKind, player::PlayerId, structures::{factory::Factory, turret::Turret}};
 use hexx::Hex;
 
 use crate::game_state::GameState;

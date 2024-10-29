@@ -1,8 +1,6 @@
-use std::future::poll_fn;
 
-use ashscript_types::intents::Intents;
 use axum::routing::get;
-use engine::{runner::runner, start::start};
+use engine::start::start;
 use game_state::{BotGameState, GameState};
 use log::info;
 use logging::setup_logger;
@@ -28,11 +26,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route(
             "/",
             get(move || async move {
-                start(&io).await;
+                /* start(&io).await; */
                 "AshScript Monolith."
             }),
         )
         .layer(layer);
+
+    tokio::spawn(async move {
+        start(&io).await;
+    });
 
     info!("Starting axum / socketio server.");
 

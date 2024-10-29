@@ -1,4 +1,3 @@
-use std::u32;
 
 use ashscript_types::{
     actions::UnitAttack,
