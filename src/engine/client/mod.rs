@@ -1,10 +1,20 @@
+use std::env;
 
 use ashscript_types::keyframe::KeyFrame;
-use log::{error, info};
+use log::{debug, error, info};
 use serde_json::Value;
 use socketioxide::{
     extract::{Data, SocketRef},
     SocketIo,
+};
+use tokio::net::{TcpListener, TcpStream};
+use tokio_tungstenite::{
+    accept_hdr_async,
+    tungstenite::{
+        connect,
+        handshake::server::{Request, Response},
+        Message,
+    },
 };
 
 use crate::game_state::GameState;
@@ -17,6 +27,10 @@ pub async fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
     );
 
     let game_state = GameState::new();
+
+    socket
+        .emit("ack_response", "received your message!")
+        .unwrap();
 
     /* loop {
         socket
@@ -85,7 +99,6 @@ pub fn emit_tick(game_state: &GameState, io: &SocketIo) {
         .emit(
             "game_state",
             ser_keyframe,
-            
             /* serde_json::json!({
                 "map": game_state.map,
                 "global": game_state.global,
@@ -112,4 +125,57 @@ pub fn basic_emit(game_state: &mut GameState, io: &SocketIo) {
 
     println!("basic emit");
 }
+/* 
+async fn server() {
+    let server = TcpListener::bind("0.0.0.0:3000").await.unwrap();
 
+    while let Ok((stream, _)) = server.accept().await {
+        tokio::spawn(accept_connection(stream));
+    }
+}
+
+async fn accept_connection(stream: TcpStream) {
+    let callback = |req: &Request, mut response: Response| {
+        debug!("Received a new ws handshake");
+        debug!("The request's path is: {}", req.uri().path());
+        debug!("The request's headers are:");
+        for (ref header, _value) in req.headers() {
+            debug!("* {}: {:?}", header, _value);
+        }
+
+        let headers = response.headers_mut();
+        headers.append("MyCustomHeader", ":)".parse().unwrap());
+
+        Ok(response)
+    };
+    let mut ws_stream = accept_hdr_async(stream, callback)
+        .await
+        .expect("Error during the websocket handshake occurred");
+
+    while let Some(msg) = ws_stream.next().await {
+        let msg = msg.unwrap();
+        if msg.is_text() || msg.is_binary() {
+            debug!("Server on message: {:?}", &msg);
+            ws_stream.send(msg).await.unwrap();
+        }
+    }
+}
+
+fn client() {
+    let (mut socket, response) = connect("ws://localhost:8080/socket").expect("Can't connect");
+    debug!("Connected to the server");
+    debug!("Response HTTP code: {}", response.status());
+    debug!("Response contains the following headers:");
+    for (ref header, _value) in response.headers() {
+        debug!("* {}: {:?}", header, _value);
+    }
+
+    socket
+        .send(Message::Text("Hello WebSocket".into()))
+        .unwrap();
+    loop {
+        let msg = socket.read().expect("Error reading message");
+        debug!("Received: {}", msg);
+    }
+}
+ */
