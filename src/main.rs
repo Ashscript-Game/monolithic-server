@@ -22,7 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let recv = Arc::new(recv);
 
     let app = axum::Router::new().route(
-        "/",
+        "/game-state",
         any(move |ws, user_agent| ws_handler(ws, user_agent, recv.resubscribe())),
     );
 
