@@ -23,7 +23,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let app = axum::Router::new().route(
         "/",
-        any(move |ws, user_agent, info| ws_handler(ws, user_agent, info, recv.resubscribe())),
+        any(move |ws, user_agent| ws_handler(ws, user_agent, recv.resubscribe())),
     );
 
     tokio::spawn(async move {

@@ -58,7 +58,6 @@ pub fn emit_tick(game_state: &GameState, sender: &mut Sender<Arc<Vec<u8>>>) {
 pub async fn ws_handler(
     ws: WebSocketUpgrade,
     user_agent: Option<TypedHeader<headers::UserAgent>>,
-    ConnectInfo(addr): ConnectInfo<SocketAddr>,
     receiver: tokio::sync::broadcast::Receiver<Arc<Vec<u8>>>,
 ) -> impl IntoResponse {
     let user_agent = if let Some(TypedHeader(user_agent)) = user_agent {
@@ -66,7 +65,7 @@ pub async fn ws_handler(
     } else {
         String::from("Unknown browser")
     };
-    println!("`{user_agent}` at {addr} connected.");
+    println!("`{user_agent}` connected.");
     // finalize the upgrade process by returning upgrade callback.
     // we can customize the callback by sending additional info such as address.
     ws.on_upgrade(move |socket| handle_socket(socket, receiver))

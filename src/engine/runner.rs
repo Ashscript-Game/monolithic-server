@@ -42,5 +42,9 @@ pub async fn tick(game_state: &mut GameState, sender: &mut Sender<Arc<Vec<u8>>>)
 
     emit_tick(game_state, sender);
 
-    sleep(Duration::from_secs(1)).await;
+    sleep(Duration::from_secs(5)).await;
 }
+
+/*
+curl --include  --no-buffer --header "Connection: Upgrade" --header "Upgrade: websocket" --header "Host: localhost:3000" --header "Origin: http://localhost:3000" --header "Sec-WebSocket-Key: SGVsbG8sIHdvcmxkIQ==" --header "Sec-WebSocket-Version: 13" ws://localhost:3000/
+ */
