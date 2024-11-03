@@ -1,10 +1,8 @@
-
-use axum::routing::get;
-use engine::start::start;
-use game_state::{BotGameState, GameState};
+use axum::routing::any;
+use engine::{client::ws_handler, start::start};
 use log::info;
 use logging::setup_logger;
-use socketioxide::SocketIo;
+use std::sync::Arc;
 
 pub mod ai;
 pub mod engine;
@@ -18,22 +16,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     info!("Welcome to the AshScript monolithic server. Starting web-services.");
 
-    let (layer, io) = SocketIo::builder()
-        .with_state(BotGameState::new(&GameState::new()))
-        .build_layer();
+    let (send, recv) = tokio::sync::broadcast::channel::<Arc<Vec<u8>>>(10);
 
-    let app = axum::Router::new()
-        .route(
-            "/",
-            get(move || async move {
-                /* start(&io).await; */
-                "AshScript Monolith."
-            }),
-        )
-        .layer(layer);
+    // This ARC is only to allow for cloning. It's dumb, but whatever.
+    let recv = Arc::new(recv);
+
+    let app = axum::Router::new().route(
+        "/game-state",
+        any(move |ws, user_agent| ws_handler(ws, user_agent, recv.resubscribe())),
+    );
 
     tokio::spawn(async move {
-        start(&io).await;
+        start(send).await;
     });
 
     info!("Starting axum / socketio server.");

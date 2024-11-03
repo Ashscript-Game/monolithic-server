@@ -1,11 +1,12 @@
-
-use socketioxide::SocketIo;
-
+use super::{
+    generate::{map::generate_tiles, terrain::generate_terrain},
+    runner::runner,
+};
 use crate::{game_state::GameState, simulations};
+use std::sync::Arc;
+use tokio::sync::broadcast::Sender;
 
-use super::{client, generate::{map::generate_tiles, terrain::generate_terrain}, runner::runner};
-
-pub async fn start(io: &SocketIo) {
+pub async fn start(sender: Sender<Arc<Vec<u8>>>) {
     let mut game_state = GameState::new();
     game_state.map.radius = 100;
 
@@ -14,7 +15,5 @@ pub async fn start(io: &SocketIo) {
 
     simulations::basic::generate(&mut game_state);
 
-    io.ns("/client", client::on_connect);
-
-    runner(&mut game_state, io).await;
+    runner(&mut game_state, sender).await;
 }
