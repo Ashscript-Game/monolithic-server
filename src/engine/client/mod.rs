@@ -43,7 +43,7 @@ pub fn emit_tick(game_state: &GameState, sender: &mut Sender<Arc<Vec<u8>>>) {
     match sender.send(Arc::new(ser_keyframe)) {
         Ok(_) => {}
         Err(e) => {
-            println!("{:?}", e);
+            dbg!(e);
         }
     }
 
@@ -134,15 +134,20 @@ async fn handle_socket(
         let value = receiver.recv().await;
         let value = match value {
             Err(e) => {
-                println!("{:?}", e);
+                dbg!(e);
                 continue;
             }
             Ok(v) => v,
         };
 
         // UGH WHY DOES THIS NEED A FULL VEC
-        match socket.send(Message::Binary((*value).clone())).await {
-            Err(e) => println!("{:?}", e),
+        match socket
+            .send(Message::Text(String::from_utf8_lossy(&*value).to_string()))
+            .await
+        {
+            Err(e) => {
+                dbg!(e);
+            }
             Ok(_) => {}
         }
     }

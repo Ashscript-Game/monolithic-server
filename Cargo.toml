@@ -25,3 +25,4 @@ libnoise = "1.1.2"
 enum-iterator = "2.1.0"
 postcard = { version = "1.0.10", features = ['use-std'] }
 tokio-tungstenite = "0.24.0"
+base64 = "0.22.1"
