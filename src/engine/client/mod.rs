@@ -9,22 +9,17 @@ use std::{net::SocketAddr, sync::Arc};
 use tokio::sync::broadcast::Sender;
 //allows to extract the IP of connecting user
 use axum::extract::connect_info::ConnectInfo;
-use ashscript_types::keyframe::KeyFrame;
 use log::{debug, error, info};
 use serde_json::Value;
-use socketioxide::{
-    extract::{Data, SocketRef},
-    SocketIo,
-};
 use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::{
     accept_hdr_async,
     tungstenite::{
         connect,
         handshake::server::{Request, Response},
-        Message,
     },
 };
+
 pub fn emit_tick(game_state: &GameState, sender: &mut Sender<Arc<Vec<u8>>>) {
     /* let mut map: HashMap<Hex, Hex> = HashMap::new();
     map.insert(hex(0, 0), hex(0, 0));
@@ -76,7 +71,7 @@ pub async fn ws_handler(
     // we can customize the callback by sending additional info such as address.
     ws.on_upgrade(move |socket| handle_socket(socket, receiver))
 }
-/* 
+/*
 async fn server() {
     let server = TcpListener::bind("0.0.0.0:3000").await.unwrap();
 
@@ -153,4 +148,3 @@ async fn handle_socket(
         }
     }
 }
-
