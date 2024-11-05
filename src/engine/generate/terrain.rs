@@ -8,7 +8,7 @@ use crate::{
 };
 
 pub fn generate_terrain(game_state: &mut GameState) {
-    for hex in shapes::hexagon(hex(0, 0), game_state.map.radius) {
+    for hex in shapes::hexagon(hex(0, 0), game_state.map.data.radius) {
         let noise = SIMPLEX_GENERATOR.sample([
             hex.x as f64,
             hex.y as f64, /* hex.x as f64, hex.y as f64 */
@@ -25,25 +25,34 @@ pub fn generate_terrain(game_state: &mut GameState) {
         }
 
         if noise > resource_noise_tresholds::COAL.0 && noise < resource_noise_tresholds::COAL.1 {
-            chunk.coal_nodes.insert(hex, CoalNode {
-                ..Default::default()
-            });
+            chunk.coal_nodes.insert(
+                hex,
+                CoalNode {
+                    ..Default::default()
+                },
+            );
             continue;
         }
 
         if noise > resource_noise_tresholds::MINERALS.0
             && noise < resource_noise_tresholds::MINERALS.1
         {
-            chunk.mineral_nodes.insert(hex, MineralNode {
-                ..Default::default()
-            });
+            chunk.mineral_nodes.insert(
+                hex,
+                MineralNode {
+                    ..Default::default()
+                },
+            );
             continue;
         }
 
         if noise > resource_noise_tresholds::SCRAP.0 && noise < resource_noise_tresholds::SCRAP.1 {
-            chunk.scrap.insert(hex, Scrap {
-                ..Default::default()
-            });
+            chunk.scrap.insert(
+                hex,
+                Scrap {
+                    ..Default::default()
+                },
+            );
             continue;
         }
     }

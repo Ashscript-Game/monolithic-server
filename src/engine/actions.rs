@@ -95,6 +95,8 @@ fn process_unit_attack_actions(game_state: &mut GameState, actions: &[actions::U
 
                 target.health -= action.damage;
             }
+
+            _ => {}
         }
     }
 }
@@ -129,6 +131,7 @@ fn process_turret_attack_actions(game_state: &mut GameState, actions: &[actions:
 
                 target.health -= action.damage;
             }
+            _ => {}
         }
     }
 }
@@ -167,7 +170,6 @@ fn process_resource_transfer_actions(
     actions: &[actions::ResourceTransfer],
 ) {
     for action in actions.iter() {
-
         // Make sure that the sender exists
 
         match action.from_kind {
@@ -181,8 +183,10 @@ fn process_resource_transfer_actions(
                     continue;
                 };
             }
+            WithStorage::Assembler => {}
+            WithStorage::Distributor => {}
         }
-        
+
         // Check if the receiver exists, if so add the resources
 
         match action.to_kind {
@@ -191,7 +195,11 @@ fn process_resource_transfer_actions(
                     continue;
                 };
 
-                if object.storage.add_checked(&action.resource, &action.amount).is_err() {
+                if object
+                    .storage
+                    .add_checked(&action.resource, &action.amount)
+                    .is_err()
+                {
                     continue;
                 }
             }
@@ -200,10 +208,16 @@ fn process_resource_transfer_actions(
                     continue;
                 };
 
-                if object.storage.add_checked(&action.resource, &action.amount).is_err() {
+                if object
+                    .storage
+                    .add_checked(&action.resource, &action.amount)
+                    .is_err()
+                {
                     continue;
                 }
             }
+            WithStorage::Assembler => {}
+            WithStorage::Distributor => {}
         }
 
         // Remove the sender's resources
@@ -214,7 +228,11 @@ fn process_resource_transfer_actions(
                     continue;
                 };
 
-                if object.storage.subtract_checked(&action.resource, &action.amount).is_err() {
+                if object
+                    .storage
+                    .subtract_checked(&action.resource, &action.amount)
+                    .is_err()
+                {
                     continue;
                 }
             }
@@ -223,10 +241,16 @@ fn process_resource_transfer_actions(
                     continue;
                 };
 
-                if object.storage.subtract_checked(&action.resource, &action.amount).is_err() {
+                if object
+                    .storage
+                    .subtract_checked(&action.resource, &action.amount)
+                    .is_err()
+                {
                     continue;
                 }
             }
+            WithStorage::Assembler => {}
+            WithStorage::Distributor => {}
         }
     }
 }

@@ -1,3 +1,7 @@
+#![allow(unused_imports)]
+#![allow(dead_code)]
+#![allow(unused_variables)]
+
 use axum::routing::any;
 use engine::{client::ws_handler, start::start};
 use log::info;

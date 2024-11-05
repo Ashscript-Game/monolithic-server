@@ -122,6 +122,8 @@ fn create_turret_attack_actions(
                     continue;
                 };
             }
+
+            _ => {}
         };
 
         let Some(turret) = game_state.map.turret_at_mut(&intent.turret_hex) else {
@@ -179,6 +181,8 @@ fn create_unit_attack_actions(
                     continue;
                 };
             }
+
+            _ => {}
         };
 
         let Some(unit) = game_state.map.unit_at_mut(&intent.attacker_hex) else {
@@ -462,6 +466,7 @@ fn create_resource_transfer_actions(
                     continue;
                 }
             }
+            _ => {}
         }
 
         // The transfer is valid
@@ -491,6 +496,7 @@ fn create_resource_transfer_actions(
                     continue;
                 };
             }
+            _ => {}
         }
 
         // validation after discussion component system

@@ -69,7 +69,6 @@ pub fn update_energy(game_state: &mut GameState) {
                         factory.future_energy = factory.energy;
                     }
                 }
-                _ => {}
             }
         }
     }

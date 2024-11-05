@@ -135,7 +135,7 @@ async fn handle_socket(
         let value = match value {
             Err(e) => {
                 dbg!(e);
-                continue;
+                break;
             }
             Ok(v) => v,
         };
