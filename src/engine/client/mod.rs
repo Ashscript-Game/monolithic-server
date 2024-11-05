@@ -5,7 +5,6 @@ use axum::{
     response::IntoResponse,
 };
 use axum_extra::TypedHeader;
-use base64::prelude::*;
 use std::{net::SocketAddr, sync::Arc};
 use tokio::sync::broadcast::Sender;
 //allows to extract the IP of connecting user
@@ -141,10 +140,8 @@ async fn handle_socket(
             Ok(v) => v,
         };
 
-        let value = BASE64_STANDARD.encode(&*value);
-
         // UGH WHY DOES THIS NEED A FULL VEC
-        match socket.send(Message::Text(value)).await {
+        match socket.send(Message::Binary((*value).clone())).await {
             Err(e) => {
                 dbg!(e);
             }
