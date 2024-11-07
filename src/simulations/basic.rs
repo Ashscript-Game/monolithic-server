@@ -1,8 +1,8 @@
-use ashscript_types::{objects::GameObjectKind, player::Player, resource::Resource};
+use ashscript_types::{components::storage::Storage, objects::GameObjectKind, player::Player, resource::Resource};
 use hexx::hex;
 use uuid::Uuid;
 
-use crate::{engine::generate::structures::spawn_structure, game_state::GameState};
+use crate::{engine::generate::structures::{spawn_factory, spawn_turret}, game_state::GameState};
 
 pub fn generate(game_state: &mut GameState) {
     for i in 0..2 {
@@ -31,11 +31,22 @@ pub fn generate(game_state: &mut GameState) {
         println!("spawning factory for player with id {}", player_id);
 
         let hex = factory_hexes[i];
-        spawn_structure(game_state, hex, *player_id, GameObjectKind::Factory);
+        spawn_turret(game_state, hex, *player_id);
 
-        let factory = game_state.map.factory_at_mut(&hex).unwrap();
-        factory.storage.capacity = 10_000;
 
-        let _ = factory.storage.add_checked(&Resource::Metal, &1000);
+        let factory_entity = spawn_factory(game_state, hex, *player_id);
+        let factory_storage = game_state.world.query_one_mut::<&mut Storage>(factory_entity).unwrap();
+        factory_storage.capacity = 10_000;
+
+        let _ = factory_storage.add_checked(&Resource::Metal, &1000);
     }
 }
+
+struct Turret {
+    pub energy: u32,
+    pub health: u32,
+    pub range: u32,
+    pub damage: u32,
+}
+
+struct HasRange(pub u32);

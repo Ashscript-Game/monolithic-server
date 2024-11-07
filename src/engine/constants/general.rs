@@ -1,4 +1,4 @@
-use ashscript_types::unit::{UnitBody, UnitPart};
+use ashscript_types::components::body::{UnitBody, UnitPart};
 use lazy_static::lazy_static;
 
 lazy_static! {

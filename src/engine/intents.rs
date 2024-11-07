@@ -1,9 +1,13 @@
 use ashscript_types::{
     actions::{self, ActionsByKind},
+    components::{body::UnitBody, energy::Energy, storage::Storage, tile::Tile},
     constants::structures::IMPASSIBLE_GAME_OBJECTS,
+    entity,
     intents::{self, Intent, Intents},
-    objects::{Attackable, GameObjectKind, WithStorage},
+    objects::GameObjectKind,
     resource::Resource,
+    structures::{factory::Factory, turret::Turret},
+    unit::Unit,
 };
 use hashbrown::HashMap;
 use hexx::Hex;
@@ -93,44 +97,44 @@ fn create_turret_attack_actions(
     actions_by_kind: &mut ActionsByKind,
 ) {
     for intent in intents.iter() {
+        let Some(turret_entity) = game_state
+            .map
+            .entity_at(&intent.turret_hex, GameObjectKind::Turret)
+        else {
+            continue;
+        };
+
         let (damage, cost) = {
-            let Some(turret) = game_state.map.turret_at(&intent.turret_hex) else {
+            let Ok((turret, turret_energy)) = game_state
+                .world
+                .query_one_mut::<(&Turret, &Energy)>(*turret_entity)
+            else {
                 continue;
             };
 
             let cost = turret.attack_cost();
-            if turret.energy < cost {
+            if turret_energy.0 < cost {
                 continue;
             }
 
             (turret.damage(), cost)
         };
 
-        match intent.target_kind {
-            Attackable::Unit => {
-                let Some(_) = game_state.map.unit_at_mut(&intent.target_hex) else {
-                    continue;
-                };
-            }
-            Attackable::Factory => {
-                let Some(_) = game_state.map.factory_at_mut(&intent.target_hex) else {
-                    continue;
-                };
-            }
-            Attackable::Turret => {
-                let Some(_) = game_state.map.turret_at_mut(&intent.target_hex) else {
-                    continue;
-                };
-            }
-
-            _ => {}
-        };
-
-        let Some(turret) = game_state.map.turret_at_mut(&intent.turret_hex) else {
+        if game_state
+            .map
+            .entity_at(&intent.turret_hex, intent.target_kind)
+            .is_none()
+        {
             continue;
         };
 
-        turret.future_energy = 0.max(turret.energy - cost);
+        let Ok(turret_energy) = game_state
+            .world
+            .query_one_mut::<&mut Energy>(*turret_entity)
+        else {
+            continue;
+        };
+        turret_energy.0 = 0.max(turret_energy.0 - cost);
 
         actions_by_kind.turret_attack.push(actions::TurretAttack {
             turret_hex: intent.turret_hex,
@@ -148,48 +152,45 @@ fn create_unit_attack_actions(
     actions_by_kind: &mut ActionsByKind,
 ) {
     for intent in intents.iter() {
+        let Some(unit_entity) = game_state
+            .map
+            .entity_at(&intent.attacker_hex, GameObjectKind::Unit)
+        else {
+            continue;
+        };
         let (damage, cost) = {
-            let Some(unit) = game_state.map.unit_at_mut(&intent.attacker_hex) else {
+            let Ok((unit, body, tile, unit_energy)) =
+                game_state
+                    .world
+                    .query_one_mut::<(&Unit, &UnitBody, &Tile, &Energy)>(*unit_entity)
+            else {
                 continue;
             };
 
-            let cost = unit.attack_cost();
-            if unit.energy < cost {
+            let cost = body.attack_cost();
+            if unit_energy.0 < cost {
                 continue;
             }
 
-            if unit.hex.unsigned_distance_to(intent.target_hex) > unit.range() {
+            if tile.hex.unsigned_distance_to(intent.target_hex) > body.range() {
                 continue;
             }
 
-            (unit.damage(), cost)
+            (body.damage(), cost)
         };
 
-        match intent.target_kind {
-            Attackable::Unit => {
-                let Some(_) = game_state.map.unit_at_mut(&intent.target_hex) else {
-                    continue;
-                };
-            }
-            Attackable::Factory => {
-                let Some(_) = game_state.map.factory_at_mut(&intent.target_hex) else {
-                    continue;
-                };
-            }
-            Attackable::Turret => {
-                let Some(_) = game_state.map.turret_at_mut(&intent.target_hex) else {
-                    continue;
-                };
-            }
-
-            _ => {}
-        };
-
-        let Some(unit) = game_state.map.unit_at_mut(&intent.attacker_hex) else {
+        if game_state
+            .map
+            .entity_at(&intent.target_hex, intent.target_kind)
+            .is_none()
+        {
             continue;
         };
 
-        unit.future_energy = 0.max(unit.energy - cost);
+        let Ok(unit_energy) = game_state.world.query_one_mut::<&mut Energy>(*unit_entity) else {
+            continue;
+        };
+        unit_energy.0 = 0.max(unit_energy.0 - cost);
 
         actions_by_kind.unit_attack.push(actions::UnitAttack {
             attacker_hex: intent.attacker_hex,
@@ -234,44 +235,24 @@ fn create_unit_move_action(
     game_state: &mut GameState,
     actions_by_kind: &mut ActionsByKind,
 ) -> bool {
-    let Some(unit) = game_state.map.unit_at_mut(&from) else {
+    let Some(unit_entity) = game_state.map.entity_at(&from, GameObjectKind::Unit) else {
+        return false;
+    };
+    let Ok((unit, body, unit_energy)) = game_state
+        .world
+        .query_one_mut::<(&Unit, &UnitBody, &Energy)>(*unit_entity)
+    else {
         return false;
     };
 
-    let cost = unit.body.weight();
-    if cost > unit.energy {
+    let cost = body.weight();
+    if cost > unit_energy.0 {
         return false;
     }
 
     for kind in IMPASSIBLE_GAME_OBJECTS.iter() {
-        match kind {
-            GameObjectKind::Turret => {
-                if game_state.map.turret_at(&to).is_some() {
-                    return false;
-                }
-            }
-            GameObjectKind::Factory => {
-                if game_state.map.factory_at(&to).is_some() {
-                    return false;
-                }
-            }
-            GameObjectKind::Unit => {
-                if game_state.map.unit_at(&to).is_some() {
-                    if let Some(next_to) = intents_from_to.get(&to) {
-                        if !create_unit_move_action(
-                            (to, *next_to),
-                            intents_from_to,
-                            game_state,
-                            actions_by_kind,
-                        ) {
-                            return false;
-                        }
-                    };
-                }
-            }
-            _ => {
-                return false;
-            }
+        if game_state.map.entity_at(&to, *kind).is_some() {
+            return false;
         }
     }
 
@@ -288,28 +269,37 @@ fn create_factory_spawn_unit_actions(
     actions_by_kind: &mut ActionsByKind,
 ) {
     for intent in intents.iter() {
-        let Some(factory) = game_state.map.factory_at(&intent.factory_hex) else {
+        let Some(factory_entity) = game_state
+            .map
+            .entity_at(&intent.factory_hex, GameObjectKind::Factory)
+        else {
             continue;
         };
-        println!(
-            "cost check {:?}",
-            factory.storage.resources.get(&Resource::Metal)
-        );
+        let Ok((factory, storage)) = game_state
+            .world
+            .query_one_mut::<(&Factory, &mut Storage)>(*factory_entity)
+        else {
+            continue;
+        };
+
         let cost = intent.body.cost();
-        if !factory.storage.has_sufficient_many(&cost) {
+        if !storage.has_sufficient_many(&cost) {
             continue;
         }
-        println!("succeeded cost check");
+
         let Some(out) = find_unit_out(&intent.out, intent.factory_hex, game_state) else {
             continue;
         };
 
-        let Some(factory) = game_state.map.factory_at_mut(&intent.factory_hex) else {
+        let Ok((factory, storage)) = game_state
+            .world
+            .query_one_mut::<(&Factory, &mut Storage)>(*factory_entity)
+        else {
             continue;
         };
 
         // should subtract from future_resources
-        let Ok(()) = factory.storage.subtract_many_checked(&cost) else {
+        let Ok(()) = storage.subtract_many_checked(&cost) else {
             continue;
         };
 
@@ -331,12 +321,21 @@ fn create_unit_spawn_unit_actions(
     actions_by_kind: &mut ActionsByKind,
 ) {
     for intent in intents.iter() {
-        let Some(unit) = game_state.map.unit_at(&intent.unit_hex) else {
+        let Some(unit_entity) = game_state
+            .map
+            .entity_at(&intent.unit_hex, GameObjectKind::Unit)
+        else {
+            continue;
+        };
+        let Ok((unit, storage)) = game_state
+            .world
+            .query_one_mut::<(&Unit, &mut Storage)>(*unit_entity)
+        else {
             continue;
         };
 
         let cost = intent.body.cost();
-        if !unit.storage.has_sufficient_many(&cost) {
+        if !storage.has_sufficient_many(&cost) {
             continue;
         };
 
@@ -344,12 +343,15 @@ fn create_unit_spawn_unit_actions(
             continue;
         };
 
-        let Some(unit) = game_state.map.unit_at_mut(&intent.unit_hex) else {
+        let Ok((unit, storage)) = game_state
+            .world
+            .query_one_mut::<(&Unit, &mut Storage)>(*unit_entity)
+        else {
             continue;
         };
 
         // should subtract from future_resources
-        let Ok(()) = unit.storage.subtract_many_checked(&cost) else {
+        let Ok(()) = storage.subtract_many_checked(&cost) else {
             continue;
         };
 
@@ -371,14 +373,7 @@ fn find_unit_out(outs: &Option<Vec<Hex>>, from: Hex, game_state: &GameState) -> 
     if let Some(outs) = outs {
         for out in outs.iter() {
             for kind in IMPASSIBLE_GAME_OBJECTS.iter() {
-                let is_impassible = match kind {
-                    GameObjectKind::Turret => game_state.map.turret_at(out).is_some(),
-                    GameObjectKind::Factory => game_state.map.factory_at(out).is_some(),
-                    GameObjectKind::Unit => game_state.map.unit_at(out).is_some(),
-                    _ => false,
-                };
-
-                if !is_impassible {
+                if game_state.map.entity_at(out, *kind).is_none() {
                     return Some(*out);
                 }
             }
@@ -389,14 +384,7 @@ fn find_unit_out(outs: &Option<Vec<Hex>>, from: Hex, game_state: &GameState) -> 
 
     for out in from.all_neighbors() {
         for kind in IMPASSIBLE_GAME_OBJECTS.iter() {
-            let is_impassible = match kind {
-                GameObjectKind::Turret => game_state.map.turret_at(&out).is_some(),
-                GameObjectKind::Factory => game_state.map.factory_at(&out).is_some(),
-                GameObjectKind::Unit => game_state.map.unit_at(&out).is_some(),
-                _ => false,
-            };
-
-            if !is_impassible {
+            if game_state.map.entity_at(&out, *kind).is_none() {
                 return Some(out);
             }
         }
@@ -413,91 +401,45 @@ fn create_resource_transfer_actions(
     for intent in intents.iter() {
         // Check if the sender has sufficient resources to send
 
-        match intent.from_kind {
-            WithStorage::Factory => {
-                let Some(factory) = game_state.map.factory_at(&intent.from_hex) else {
-                    continue;
-                };
-                if !factory
-                    .storage
-                    .has_sufficient(&intent.resource, &intent.amount)
-                {
-                    continue;
-                };
-            }
-            WithStorage::Unit => {
-                let Some(unit) = game_state.map.unit_at(&intent.from_hex) else {
-                    continue;
-                };
-                if !unit
-                    .storage
-                    .has_sufficient(&intent.resource, &intent.amount)
-                {
-                    continue;
-                };
-            }
-            _ => {
-                continue;
-            }
-        }
+        let Some(from_entity) = game_state.map.entity_at(&intent.from_hex, intent.from_kind) else {
+            continue;
+        };
+        let Ok(from_storage) = game_state.world.query_one_mut::<&Storage>(*from_entity) else {
+            continue;
+        };
+
+        if !from_storage.has_sufficient(&intent.resource, &intent.amount) {
+            continue;
+        };
 
         // Check if the receiver has sufficient capacity and is allowed to receive the resource
 
-        match intent.to_kind {
-            WithStorage::Factory => {
-                let Some(factory) = game_state.map.factory_at(&intent.to_hex) else {
-                    continue;
-                };
-                if factory.storage.is_allowed(&intent.resource) {
-                    continue;
-                }
-                if factory.storage.capacity < intent.amount {
-                    continue;
-                }
-            }
-            WithStorage::Unit => {
-                let Some(unit) = game_state.map.unit_at(&intent.to_hex) else {
-                    continue;
-                };
-                if unit.storage.is_allowed(&intent.resource) {
-                    continue;
-                }
-                if unit.storage.capacity < intent.amount {
-                    continue;
-                }
-            }
-            _ => {}
+        let Some(to_entity) = game_state.map.entity_at(&intent.from_hex, intent.from_kind) else {
+            continue;
+        };
+        let Ok(to_storage) = game_state.world.query_one_mut::<&Storage>(*to_entity) else {
+            continue;
+        };
+
+        if to_storage.is_allowed(&intent.resource) {
+            continue;
+        }
+        if to_storage.capacity < intent.amount {
+            continue;
         }
 
         // The transfer is valid
 
-        match intent.from_kind {
-            WithStorage::Factory => {
-                let Some(factory) = game_state.map.factory_at_mut(&intent.from_hex) else {
-                    continue;
-                };
-                if factory
-                    .storage
-                    .subtract_checked(&intent.resource, &intent.amount)
-                    .is_err()
-                {
-                    continue;
-                };
-            }
-            WithStorage::Unit => {
-                let Some(unit) = game_state.map.unit_at_mut(&intent.from_hex) else {
-                    continue;
-                };
-                if unit
-                    .storage
-                    .subtract_checked(&intent.resource, &intent.amount)
-                    .is_err()
-                {
-                    continue;
-                };
-            }
-            _ => {}
-        }
+        let Ok(from_storage) = game_state.world.query_one_mut::<&mut Storage>(*from_entity) else {
+            continue;
+        };
+
+        if from_storage
+            .subtract_checked(&intent.resource, &intent.amount)
+            .is_err()
+        {
+            continue;
+        };
 
         // validation after discussion component system
 

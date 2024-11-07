@@ -1,46 +1,39 @@
-
 use ashscript_types::{
     actions::UnitAttack,
+    components::{body::UnitBody, energy::Energy, health::Health, storage::Storage, tile::Tile},
     player::PlayerId,
     resource::Resource,
-    unit::{Unit, UnitBody},
+    unit::Unit,
 };
 use hexx::Hex;
 
 use crate::game_state::GameState;
 
 pub fn age_units(game_state: &mut GameState) {
-    for (_, chunk) in game_state.map.chunks.iter_mut() {
-        for (_, unit) in chunk.units.iter_mut() {
-            unit.age += 1;
+    for (_, (body, storage)) in game_state.world.query_mut::<(&mut UnitBody, &Storage)>() {
+        body.age += 1;
 
-            // Age also increases based on how much uranium is being carried
-            unit.age -= unit.storage.resources.get(&Resource::Uranium).unwrap_or(&0) / 100;
-        }
+        // Age also increases based on how much uranium is being carried
+        body.age -= storage.resources.get(&Resource::Uranium).unwrap_or(&0) / 100;
     }
 }
 
 pub fn units_generate_energy(game_state: &mut GameState) {
-    for (_, chunk) in game_state.map.chunks.iter_mut() {
-        for (_, unit) in chunk.units.iter_mut() {
-            unit.energy =
-                (unit.energy + unit.body.energy_income()).max(unit.body.energy_capacity());
-        }
+    for (_, (body, energy)) in game_state.world.query_mut::<(&UnitBody, &mut Energy)>() {
+        energy.0 = (energy.0 + body.energy_income()).min(body.energy_capacity());
     }
 }
 
 pub fn delete_dead_units(game_state: &mut GameState) {
-    for (_, chunk) in game_state.map.chunks.iter_mut() {
-        chunk.units.retain(|_, unit| {
-            if unit.age >= unit.max_age() {
-                return false;
-            }
-            if unit.health == 0 {
-                return false;
-            }
-
-            true
-        });
+    for (entity, (body, health)) in game_state.world.query_mut::<(&UnitBody, &Health)>() {
+        if body.age >= body.max_age() {
+            game_state.world.despawn(entity);
+            return;
+        }
+        if health.0 == 0 {
+            game_state.world.despawn(entity);
+            return;
+        }
     }
 }
 
@@ -52,43 +45,35 @@ pub fn can_attack(game_state: &GameState, intent: &UnitAttack) -> bool {
     true
 }
 
-pub fn attack(attacker: &mut Unit, target: &mut Unit) {
-    let cost = attacker.attack_cost();
-    if attacker.energy < cost {
-        return;
-    }
-
-    if attacker.hex == target.hex {
-        return;
-    }
-
-    let distance = attacker.hex.unsigned_distance_to(target.hex);
-    if distance > attacker.range() {
-        return;
-    }
-
-    let damage = attacker.damage();
-    if damage > target.health {
-        target.health = 0
-    } else {
-        target.health -= damage
-    }
-
-    attacker.energy -= cost;
-}
-
-pub fn spawn_unit(
-    hex: Hex,
-    name: String,
-    body: UnitBody,
-    owner_id: PlayerId,
-    game_state: &mut GameState,
+pub fn attack(
+    attacker: &mut Unit,
+    attacker_tile: &Tile,
+    attacker_body: &UnitBody,
+    attacker_energy: &mut Energy,
+    target: &mut Unit,
+    target_tile: &Tile,
+    target_health: &mut Health,
 ) {
-    let Some(chunk) = game_state.map.chunk_at_mut(&hex) else {
+    let cost = attacker_body.attack_cost();
+    if attacker_energy.0 < cost {
         return;
-    };
+    }
 
-    chunk
-        .units
-        .insert(hex, Unit::new(hex, name, body, owner_id));
+    if attacker_tile.hex == target_tile.hex {
+        return;
+    }
+
+    let distance = attacker_tile.hex.unsigned_distance_to(target_tile.hex);
+    if distance > attacker_body.range() {
+        return;
+    }
+
+    let damage = attacker_body.damage();
+    if damage > target_health.0 {
+        target_health.0 = 0
+    } else {
+        target_health.0 -= damage
+    }
+
+    attacker_energy.0 -= cost;
 }

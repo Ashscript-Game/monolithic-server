@@ -1,12 +1,14 @@
 use ashscript_types::{global::Global, map::Map, player::PlayerId};
 use hashbrown::HashMap;
+use hecs::World;
 use serde::Serialize;
 use uuid::Uuid;
 
-#[derive(Default, Clone, Serialize)]
+#[derive(Default)]
 pub struct GameState {
     pub map: Map,
     pub global: Global,
+    pub world: World,
     pub bots: HashMap<PlayerId, Bot>,
 }
 

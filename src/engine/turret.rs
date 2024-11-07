@@ -1,4 +1,5 @@
-use ashscript_types::{structures::turret::Turret, unit::Unit};
+use ashscript_types::{components::{energy::Energy, health::Health, tile::Tile}, structures::turret::Turret, unit::Unit};
+use hexx::Hex;
 
 pub fn turret_attack_cost(turret: &Turret) -> u32 {
     turret_range(turret) + turret_damage(turret)
@@ -12,27 +13,27 @@ pub fn turret_damage(turret: &Turret) -> u32 {
     1
 }
 
-pub fn turret_attack(turret: &mut Turret, unit: &mut Unit) {
+pub fn turret_attack(turret: &Turret, turret_tile: Tile, turret_energy: &mut Energy, unit_tile: &Tile, unit_health: &mut Health) {
     let attack_cost = turret.attack_cost();
-    if turret.energy < attack_cost {
+    if turret_energy.0 < attack_cost {
         return
     };
     
-    if turret.hex == unit.hex {
+    if turret_tile.hex == unit_tile.hex {
         return
     }
 
-    let distance = turret.hex.unsigned_distance_to(unit.hex);
+    let distance = turret_tile.hex.unsigned_distance_to(unit_tile.hex);
     if distance > turret.range() {
         return
     }
 
     let damage = turret.damage();
-    if damage > unit.health {
-        unit.health = 0
+    if damage > unit_health.0 {
+        unit_health.0 = 0
     } else {
-        unit.health -= damage
+        unit_health.0 -= damage
     }
 
-    turret.energy -= attack_cost;
+    turret_energy.0 -= attack_cost;
 }

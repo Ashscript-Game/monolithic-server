@@ -26,3 +26,4 @@ enum-iterator = "2.1.0"
 postcard = { version = "1.0.10", features = ['use-std'] }
 tokio-tungstenite = "0.24.0"
 base64 = "0.22.1"
+hecs = { version = "0.10.5", features = ["serde"] }

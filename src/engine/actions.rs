@@ -1,13 +1,22 @@
 use ashscript_types::{
     actions::{self, ActionsByKind},
-    objects::{Attackable, WithStorage},
+    components::{
+        body::UnitBody,
+        energy::Energy,
+        health::Health,
+        owner::Owner,
+        storage::{self, Storage},
+        tile::Tile,
+    },
+    objects::GameObjectKind,
+    unit::Unit,
 };
 use hashbrown::HashMap;
 use hexx::Hex;
 
 use crate::game_state::GameState;
 
-use super::unit::spawn_unit;
+use super::generate::component::new_unit;
 
 pub fn process_actions(game_state: &mut GameState, actions: &ActionsByKind) {
     process_move_actions(game_state, &actions.unit_move);
@@ -40,16 +49,16 @@ fn process_move_action(
     from: Hex,
     to: Hex,
     cost: u32,
-) {
-    let Some(chunk) = game_state.map.chunks.get_mut(&from) else {
-        return;
-    };
+) -> Option<()> {
+    let chunk = game_state.map.chunks.get_mut(&from)?;
 
-    let Some(mut unit) = chunk.units.remove(&from) else {
-        return;
-    };
+    let entity = chunk.entities[GameObjectKind::Unit].remove(&from)?;
 
-    if game_state.map.unit_at_mut(&to).is_some() {
+    if game_state
+        .map
+        .entity_at(&to, GameObjectKind::Unit)
+        .is_some()
+    {
         if let Some((next_to, next_cost)) = actions_from_to.get(&to) {
             process_move_action(game_state, actions_from_to, from, *next_to, *next_cost);
         };
@@ -57,82 +66,83 @@ fn process_move_action(
 
     // The move is considered successful. Move the unit and charge it for doing so
 
-    let Some(new_chunk) = game_state.map.chunks.get_mut(&to) else {
-        return;
+    let Ok(unit_energy) = game_state.world.query_one_mut::<&mut Energy>(entity) else {
+        return None;
     };
 
-    unit.energy -= cost;
-    new_chunk.units.insert(to, unit);
+    let new_chunk = game_state.map.chunks.get_mut(&to)?;
+
+    unit_energy.0 -= cost;
+    new_chunk.entities[GameObjectKind::Unit].insert(to, entity);
+
+    Some(())
 }
 
 fn process_unit_attack_actions(game_state: &mut GameState, actions: &[actions::UnitAttack]) {
     for action in actions.iter() {
-        let Some(attacker) = game_state.map.unit_at_mut(&action.attacker_hex) else {
+        let Some(attacker_entity) = game_state
+            .map
+            .entity_at(&action.attacker_hex, GameObjectKind::Unit)
+        else {
+            continue;
+        };
+        let Ok(attacker_energy) = game_state
+            .world
+            .query_one_mut::<&mut Energy>(*attacker_entity)
+        else {
             continue;
         };
 
-        attacker.energy -= action.cost;
+        attacker_energy.0 -= action.cost;
 
-        match action.target_kind {
-            Attackable::Unit => {
-                let Some(target) = game_state.map.unit_at_mut(&action.target_hex) else {
-                    continue;
-                };
+        let Some(target_entity) = game_state
+            .map
+            .entity_at(&action.target_hex, action.target_kind)
+        else {
+            continue;
+        };
+        let Ok(target_health) = game_state
+            .world
+            .query_one_mut::<&mut Health>(*target_entity)
+        else {
+            continue;
+        };
 
-                target.health -= action.damage;
-            }
-            Attackable::Factory => {
-                let Some(target) = game_state.map.factory_at_mut(&action.target_hex) else {
-                    continue;
-                };
-
-                target.health -= action.damage;
-            }
-            Attackable::Turret => {
-                let Some(target) = game_state.map.turret_at_mut(&action.target_hex) else {
-                    continue;
-                };
-
-                target.health -= action.damage;
-            }
-
-            _ => {}
-        }
+        target_health.0 -= action.damage;
     }
 }
 
 fn process_turret_attack_actions(game_state: &mut GameState, actions: &[actions::TurretAttack]) {
     for action in actions.iter() {
-        let Some(turret) = game_state.map.turret_at_mut(&action.turret_hex) else {
+        let Some(turret_entity) = game_state
+            .map
+            .entity_at(&action.turret_hex, GameObjectKind::Unit)
+        else {
+            continue;
+        };
+        let Ok(turret_energy) = game_state
+            .world
+            .query_one_mut::<&mut Energy>(*turret_entity)
+        else {
             continue;
         };
 
-        turret.energy -= action.cost;
+        turret_energy.0 -= action.cost;
 
-        match action.target_kind {
-            Attackable::Unit => {
-                let Some(target) = game_state.map.unit_at_mut(&action.target_hex) else {
-                    continue;
-                };
+        let Some(target_entity) = game_state
+            .map
+            .entity_at(&action.target_hex, action.target_kind)
+        else {
+            continue;
+        };
+        let Ok(target_health) = game_state
+            .world
+            .query_one_mut::<&mut Health>(*target_entity)
+        else {
+            continue;
+        };
 
-                target.health -= action.damage;
-            }
-            Attackable::Factory => {
-                let Some(target) = game_state.map.factory_at_mut(&action.target_hex) else {
-                    continue;
-                };
-
-                target.health -= action.damage;
-            }
-            Attackable::Turret => {
-                let Some(target) = game_state.map.turret_at_mut(&action.target_hex) else {
-                    continue;
-                };
-
-                target.health -= action.damage;
-            }
-            _ => {}
-        }
+        target_health.0 -= action.damage;
     }
 }
 
@@ -141,26 +151,40 @@ fn process_factory_spawn_unit_actions(
     actions: &[actions::FactorySpawnUnit],
 ) {
     for action in actions.iter() {
-        let Some(factory) = game_state.map.factory_at_mut(&action.factory_hex) else {
+        let Some(entity) = game_state
+            .map
+            .entity_at(&action.factory_hex, GameObjectKind::Factory)
+        else {
+            continue;
+        };
+        let Ok((storage, owner)) = game_state
+            .world
+            .query_one_mut::<(&mut Storage, &Owner)>(*entity)
+        else {
             continue;
         };
 
-        let Ok(()) = factory.storage.subtract_many_checked(&action.cost) else {
+        let Ok(()) = storage.subtract_many_checked(&action.cost) else {
             continue;
         };
 
-        if let Some(unit) = game_state.map.unit_at(&action.out) {
-            println!("UNIT ALREADY AT HEX TRYING TO SPAWN TO")
-        }
+        if game_state
+            .map
+            .entity_at(&action.out, GameObjectKind::Unit)
+            .is_some()
+        {
+            println!("UNIT ALREADY AT HEX TRYING TO SPAWN TO");
+            continue;
+        };
 
-        let factory = game_state.map.factory_at(&action.factory_hex).unwrap();
+        let owner_id = owner.0;
 
-        spawn_unit(
-            action.out,
-            action.name.clone(),
-            action.body,
-            factory.owner_id,
+        new_unit(
             game_state,
+            action.name.clone(),
+            action.out,
+            action.body,
+            owner_id,
         );
     }
 }
@@ -172,85 +196,37 @@ fn process_resource_transfer_actions(
     for action in actions.iter() {
         // Make sure that the sender exists
 
-        match action.from_kind {
-            WithStorage::Unit => {
-                if game_state.map.unit_at(&action.from).is_none() {
-                    continue;
-                };
-            }
-            WithStorage::Factory => {
-                if game_state.map.factory_at(&action.from).is_none() {
-                    continue;
-                };
-            }
-            WithStorage::Assembler => {}
-            WithStorage::Distributor => {}
-        }
+        let Some(from_entity) = game_state.map.entity_at(&action.from, action.from_kind) else {
+            continue;
+        };
 
         // Check if the receiver exists, if so add the resources
 
-        match action.to_kind {
-            WithStorage::Unit => {
-                let Some(object) = game_state.map.unit_at_mut(&action.to_hex) else {
-                    continue;
-                };
+        let Some(to_entity) = game_state.map.entity_at(&action.to_hex, action.to_kind) else {
+            continue;
+        };
+        let Ok(to_storage) = game_state.world.query_one_mut::<&mut Storage>(*to_entity) else {
+            continue;
+        };
 
-                if object
-                    .storage
-                    .add_checked(&action.resource, &action.amount)
-                    .is_err()
-                {
-                    continue;
-                }
-            }
-            WithStorage::Factory => {
-                let Some(object) = game_state.map.factory_at_mut(&action.to_hex) else {
-                    continue;
-                };
-
-                if object
-                    .storage
-                    .add_checked(&action.resource, &action.amount)
-                    .is_err()
-                {
-                    continue;
-                }
-            }
-            WithStorage::Assembler => {}
-            WithStorage::Distributor => {}
+        if to_storage
+            .add_checked(&action.resource, &action.amount)
+            .is_err()
+        {
+            continue;
         }
 
         // Remove the sender's resources
 
-        match action.from_kind {
-            WithStorage::Unit => {
-                let Some(object) = game_state.map.unit_at_mut(&action.from) else {
-                    continue;
-                };
+        let Ok(from_storage) = game_state.world.query_one_mut::<&mut Storage>(*from_entity) else {
+            continue;
+        };
 
-                if object
-                    .storage
-                    .subtract_checked(&action.resource, &action.amount)
-                    .is_err()
-                {
-                    continue;
-                }
-            }
-            WithStorage::Factory => {
-                let Some(object) = game_state.map.factory_at_mut(&action.from) else {
-                    continue;
-                };
-
-                if object
-                    .storage
-                    .subtract_checked(&action.resource, &action.amount)
-                    .is_err()
-                {
-                    continue;
-                }
-            }
-            WithStorage::Assembler => {}
-            WithStorage::Distributor => {}
+        if from_storage
+            .subtract_checked(&action.resource, &action.amount)
+            .is_err()
+        {
+            continue;
         }
     }
 }

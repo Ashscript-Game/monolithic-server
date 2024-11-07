@@ -18,6 +18,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "512761e0bb2578dd7380c6baaa0f4ce03e84f95e960231d1dec8bf4d7d6e2627"
 
 [[package]]
+name = "ahash"
+version = "0.8.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e89da841a80418a9b391ebaea17f5c112ffaaa96f621d2c285b5174da76b9011"
+dependencies = [
+ "cfg-if",
+ "once_cell",
+ "version_check",
+ "zerocopy",
+]
+
+[[package]]
 name = "aho-corasick"
 version = "1.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -34,14 +46,15 @@ checksum = "5c6cb57a04249c6480766f7f7cef5467412af1490f8d1e243141daddada3264f"
 
 [[package]]
 name = "ashscript-types"
-version = "0.9.5"
-source = "git+https://github.com/Ashscript-Game/ashscript-types?branch=main#cb2aec49cc82c62e66ba7c5b7d04b5ad730dc2f2"
+version = "0.10.8"
+source = "git+https://github.com/Ashscript-Game/ashscript-types?branch=main#a1eb3b66ae5ee128949dccecac46e62836727890"
 dependencies = [
  "enum-iterator",
  "enum-map",
  "enum_dispatch",
  "glam",
- "hashbrown",
+ "hashbrown 0.15.0",
+ "hecs",
  "hexx",
  "lazy_static",
  "serde",
@@ -521,6 +534,15 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
+version = "0.14.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
+dependencies = [
+ "ahash",
+]
+
+[[package]]
+name = "hashbrown"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1e087f84d4f86bf4b218b927129862374b72199ae7d8657835f1e89000eea4fb"
@@ -567,6 +589,17 @@ dependencies = [
  "serde",
  "spin",
  "stable_deref_trait",
+]
+
+[[package]]
+name = "hecs"
+version = "0.10.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e1cbc675ee8d97b4d206a985137f8ad59666538f56f906474f554467a63c776d"
+dependencies = [
+ "hashbrown 0.14.5",
+ "serde",
+ "spin",
 ]
 
 [[package]]
@@ -825,8 +858,9 @@ dependencies = [
  "enum-map",
  "fern",
  "glam",
- "hashbrown",
+ "hashbrown 0.15.0",
  "headers",
+ "hecs",
  "hexx",
  "humantime",
  "lazy_static",

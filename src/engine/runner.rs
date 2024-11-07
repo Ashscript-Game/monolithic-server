@@ -2,7 +2,7 @@ use crate::{
     engine::{
         actions::process_actions,
         client::emit_tick,
-        game_objects::{update_energy, update_health, update_resources},
+        game_objects::{update_resources},
         unit::units_generate_energy,
     },
     game_state::GameState,
@@ -35,8 +35,6 @@ pub async fn tick(game_state: &mut GameState, sender: &mut Sender<Arc<Vec<u8>>>)
     units_generate_energy(game_state);
 
     update_resources(game_state);
-    update_energy(game_state);
-    update_health(game_state);
 
     game_state.global.tick += 1;
 
