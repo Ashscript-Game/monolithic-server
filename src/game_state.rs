@@ -1,4 +1,4 @@
-use ashscript_types::{global::Global, map::Map, player::PlayerId};
+use ashscript_types::{global::Global, keyframe::KeyFrame, map::Map, player::PlayerId, world::deserialize_world_data};
 use hashbrown::HashMap;
 use hecs::World;
 use serde::Serialize;
@@ -20,20 +20,25 @@ impl GameState {
     }
 }
 
-#[derive(Default, Serialize, Clone)]
+#[derive(Default)]
 pub struct BotGameState {
     pub map: Map,
     pub global: Global,
+    pub world: World,
     pub me: Me,
 }
 
 impl BotGameState {
-    pub fn new(game_state: &GameState) -> Self {
-        Self {
-            map: /* Map::new(), */game_state.map.clone(),
-            global: game_state.global.clone(),
+    pub fn from_keyframe(keyframe: KeyFrame) -> Option<Self> {
+
+        let world = deserialize_world_data(keyframe.world_data)?;
+
+        Some(Self {
+            map: keyframe.map,
+            global: keyframe.global,
+            world,
             ..Default::default()
-        }
+        })
     }
 }
 

@@ -1,16 +1,23 @@
 use ashscript_types::{
+    components::{
+        body::{UnitBody, UnitPart},
+        owner::Owner,
+        terrain::{self, Lava, Terrain, Wall},
+        tile::Tile,
+    },
     intents::{FactorySpawnUnit, Intent, Intents, UnitAttack, UnitMove},
-    objects::Attackable,
-    terrain::Terrain,
-    unit::{Unit, UnitBody, UnitPart},
+    objects::GameObjectKind,
+    structures::{factory::Factory, turret::Turret},
+    unit::Unit,
 };
+use hecs::{Entity, Or};
 use hexx::{shapes, Hex};
 
 use crate::game_state::BotGameState;
 
 use super::shared::{BotMemory, BotState, UnitRole};
 
-pub fn main(game_state: &BotGameState, memory: &mut BotMemory) -> Intents {
+pub fn main(game_state: &mut BotGameState, memory: &mut BotMemory) -> Intents {
     let mut intents = Intents::default();
 
     let mut bot_state = BotState::new();
@@ -38,27 +45,27 @@ pub fn spawn_units(game_state: &BotGameState, memory: &mut BotMemory) {
 }
 
 pub fn organize_units(game_state: &BotGameState, memory: &mut BotMemory, bot_state: &mut BotState) {
-    for chunk in game_state.map.chunks.values() {
-        for unit in chunk.units.values() {
+    for (entity, (unit, tile, owner)) in game_state.world.query::<(&Unit, &Tile, &Owner)>().iter() {
+        println!(
+            "[generalist ai] found unit: {} at ({}, {})",
+            unit.name, tile.hex.x, tile.hex.y
+        );
 
-            println!("[generalist ai] found unit: {} at ({}, {})", unit.name, unit.hex.x, unit.hex.y);
+        if owner.0 != game_state.me.id {
+            continue;
+        };
 
-            if unit.owner_id != game_state.me.id {
-                continue;
-            };
+        let role = match unit.name.as_str() {
+            "leader" => UnitRole::Leader,
+            "attacker" => UnitRole::Attacker,
+            "scout" => UnitRole::Scout,
+            "defender" => UnitRole::Defender,
+            "extractor" => UnitRole::Extractor,
+            "hauler" => UnitRole::Hauler,
+            _ => UnitRole::Unknown,
+        };
 
-            let role = match unit.name.as_str() {
-                "leader" => UnitRole::Leader,
-                "attacker" => UnitRole::Attacker,
-                "scout" => UnitRole::Scout,
-                "defender" => UnitRole::Defender,
-                "extractor" => UnitRole::Extractor,
-                "hauler" => UnitRole::Hauler,
-                _ => UnitRole::Unknown,
-            };
-
-            bot_state.unit_hexes_by_role[role].insert(unit.hex);
-        }
+        bot_state.unit_hexes_by_role[role].insert(tile.hex);
     }
 }
 
@@ -70,7 +77,7 @@ pub fn scouts_scout(game_state: &BotGameState, memory: &mut BotMemory) {
 }
 
 pub fn attackers_attack(
-    game_state: &BotGameState,
+    game_state: &mut BotGameState,
     memory: &mut BotMemory,
     bot_state: &mut BotState,
     intents: &mut Intents,
@@ -79,17 +86,27 @@ pub fn attackers_attack(
         // get the unit by its id
         // run attack logic
 
-        let Some(unit) = game_state.map.unit_at(hex) else {
+        let Some(unit_entity) = game_state.map.entity_at(hex, GameObjectKind::Unit) else {
+            continue;
+        };
+        let mut unit_query = game_state
+            .world
+            .query_one::<(&Unit, &UnitBody, &Tile)>(*unit_entity)
+            .unwrap();
+        let Some((unit, unit_body, unit_tile)) = unit_query.get() else {
             continue;
         };
 
-        println!("[generalist ai] unit is trying to attack: {} at ({}, {})", unit.name, unit.hex.x, unit.hex.y);
+        println!(
+            "[generalist ai] unit is trying to attack: {} at ({}, {})",
+            unit.name, unit_tile.hex.x, unit_tile.hex.y
+        );
 
-        let nearby_enemy_hexes = find_enemy_hexes_in_range(game_state, *hex, unit.range());
+        let nearby_enemy_hexes = find_enemy_hexes_in_range(game_state, *hex, unit_body.range());
 
         if let Some(enemy_hex) = nearby_enemy_hexes.first() {
-            attack_enemy(game_state, unit, *enemy_hex, intents);
-            move_unit(game_state, *hex, (*enemy_hex, unit.range()), intents);
+            attack_enemy(game_state, unit_tile.hex, *enemy_hex, intents);
+            move_unit(game_state, *hex, (*enemy_hex, unit_body.range()), intents);
             continue;
         };
 
@@ -97,21 +114,19 @@ pub fn attackers_attack(
             continue;
         };
 
-        move_unit(game_state, *hex, (enemy_hex, unit.range()), intents);
+        move_unit(game_state, *hex, (enemy_hex, unit_body.range()), intents);
     }
 }
 
 fn find_enemy_hexes(game_state: &BotGameState) -> Vec<Hex> {
     let mut enemy_hexes = Vec::new();
 
-    for chunk in game_state.map.chunks.values() {
-        for unit in chunk.units.values() {
-            if unit.owner_id == game_state.me.id {
-                continue;
-            };
+    for (entity, (unit, owner, tile)) in &mut game_state.world.query::<(&Unit, &Owner, &Tile)>() {
+        if owner.0 != game_state.me.id {
+            continue;
+        };
 
-            enemy_hexes.push(unit.hex);
-        }
+        enemy_hexes.push(tile.hex);
     }
 
     enemy_hexes
@@ -121,20 +136,18 @@ fn find_closest_enemy_hex(game_state: &BotGameState, around: Hex) -> Option<Hex>
     let mut closest_enemy_hex: Option<Hex> = None;
     let mut lowest_distance = u32::MAX;
 
-    for chunk in game_state.map.chunks.values() {
-        for enemy in chunk.units.values() {
-            if enemy.owner_id == game_state.me.id {
-                continue;
-            };
+    for (entity, (unit, owner, tile)) in &mut game_state.world.query::<(&Unit, &Owner, &Tile)>() {
+        if owner.0 == game_state.me.id {
+            continue;
+        };
 
-            let distance = around.unsigned_distance_to(enemy.hex);
-            if distance >= lowest_distance {
-                continue;
-            }
-
-            closest_enemy_hex = Some(enemy.hex);
-            lowest_distance = distance;
+        let distance = around.unsigned_distance_to(tile.hex);
+        if distance >= lowest_distance {
+            continue;
         }
+
+        closest_enemy_hex = Some(tile.hex);
+        lowest_distance = distance;
     }
 
     closest_enemy_hex
@@ -144,29 +157,36 @@ fn find_enemy_hexes_in_range(game_state: &BotGameState, around: Hex, range: u32)
     let mut enemy_hexes = find_enemy_hexes(game_state);
 
     for hex in shapes::hexagon(around, range) {
-        let Some(unit) = game_state.map.unit_at(&hex) else {
+        let Some(entity) = game_state.map.entity_at(&hex, GameObjectKind::Unit) else {
+            continue;
+        };
+        let mut query = game_state
+            .world
+            .query_one::<(&Unit, &Owner)>(*entity)
+            .unwrap();
+        let Some((unit, owner)) = query.get() else {
             continue;
         };
 
-        if unit.owner_id == game_state.me.id {
+        if owner.0 == game_state.me.id {
             continue;
         };
 
-        enemy_hexes.push(unit.hex);
+        enemy_hexes.push(hex);
     }
 
     enemy_hexes
 }
 
-fn attack_enemy(game_state: &BotGameState, unit: &Unit, enemy_hex: Hex, intents: &mut Intents) {
+fn attack_enemy(game_state: &BotGameState, unit_hex: Hex, enemy_hex: Hex, intents: &mut Intents) {
     // decide wether to attack based on current energy, shield health, and move needs
 
     //
 
     intents.push(Intent::UnitAttack(UnitAttack {
-        attacker_hex: unit.hex,
+        attacker_hex: unit_hex,
         target_hex: enemy_hex,
-        target_kind: Attackable::Unit,
+        target_kind: GameObjectKind::Unit,
     }));
 }
 
@@ -187,10 +207,12 @@ fn move_unit(
             return Some(1);
         }
 
-        if let Some(terrain) = game_state.map.terrain_at(&bhex) {
-            if *terrain == Terrain::Wall {
-                return None;
-            }
+        if let Some(terrain_entity) = game_state.map.entity_at(&bhex, GameObjectKind::Terrain) {
+            game_state
+                .world
+                .query_one::<Or<&Lava, &Wall>>(*terrain_entity)
+                .ok()?
+                .get()?;
         }
 
         if unit_hexes.contains(&bhex) {
@@ -235,11 +257,23 @@ pub fn haulers_haul(game_state: &BotGameState, memory: &mut BotMemory) {
 }
 
 pub fn turrets_shoot(game_state: &BotGameState, memory: &mut BotMemory, intents: &mut Intents) {
-    for chunk in game_state.map.chunks.values() {
-        // loop through turrets
-        // shoot at closest enemy
+    // loop through turrets
+    // shoot at closest enemy
 
-        for turret in chunk.turrets.values() {}
+    for (turret_entity, (turret, turret_tile, turret_owner)) in
+        game_state.world.query::<(&Turret, &Tile, &Owner)>().iter()
+    {
+        if turret_owner.0 != game_state.me.id {
+            continue;
+        };
+
+        for (unit_entity, (unit, unit_tile, unit_owner)) in
+            game_state.world.query::<(&Unit, &Tile, &Owner)>().iter()
+        {
+            if unit_owner.0 != game_state.me.id {
+                continue;
+            };
+        }
     }
 }
 
@@ -248,28 +282,29 @@ pub fn factories_spawn_units(
     memory: &mut BotMemory,
     intents: &mut Intents,
 ) {
+    for (entity, (factory, tile, owner)) in
+        game_state.world.query::<(&Factory, &Tile, &Owner)>().iter()
+    {
+        if owner.0 != game_state.me.id {
+            continue;
+        };
 
-    for chunk in game_state.map.chunks.values() {
-        for factory in chunk.factories.values() {
+        println!(
+            "[generalist ai] trying to spawn a unit at ({}, {})",
+            tile.hex.x, tile.hex.y
+        );
 
-            if factory.owner_id != game_state.me.id {
-                continue;
-            };
+        let parts = vec![
+            (UnitPart::Generate, 5),
+            (UnitPart::Ranged, 1),
+            (UnitPart::Shield, 1),
+        ];
 
-            println!("[generalist ai] trying to spawn a unit at ({}, {})", factory.hex.x, factory.hex.y);
-
-            let parts = vec![
-                (UnitPart::Generate, 5),
-                (UnitPart::Ranged, 1),
-                (UnitPart::Shield, 1),
-            ];
-
-            intents.push(Intent::FactorySpawnUnit(FactorySpawnUnit {
-                factory_hex: factory.hex,
-                out: None,
-                name: "attacker".to_string(),
-                body: UnitBody::from_vec(parts),
-            }));
-        }
+        intents.push(Intent::FactorySpawnUnit(FactorySpawnUnit {
+            factory_hex: tile.hex,
+            out: None,
+            name: "attacker".to_string(),
+            body: UnitBody::from_vec(parts),
+        }));
     }
 }

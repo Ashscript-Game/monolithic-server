@@ -38,7 +38,7 @@ pub async fn tick(game_state: &mut GameState, sender: &mut Sender<Arc<Vec<u8>>>)
 
     game_state.global.tick += 1;
 
-    emit_tick(game_state, sender);
+    emit_tick(game_state, &actions_by_kind, sender);
 
     sleep(Duration::from_secs(5)).await;
 }

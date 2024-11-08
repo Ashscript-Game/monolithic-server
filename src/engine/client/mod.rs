@@ -1,5 +1,5 @@
 use crate::game_state::GameState;
-use ashscript_types::keyframe::KeyFrame;
+use ashscript_types::{actions::ActionsByKind, keyframe::KeyFrame};
 use axum::{
     extract::ws::{Message, WebSocket, WebSocketUpgrade},
     response::IntoResponse,
@@ -20,20 +20,20 @@ use tokio_tungstenite::{
     },
 };
 
-pub fn emit_tick(game_state: &GameState, sender: &mut Sender<Arc<Vec<u8>>>) {
+pub fn emit_tick(game_state: &GameState, actions: &ActionsByKind, sender: &mut Sender<Arc<Vec<u8>>>) {
     /* let mut map: HashMap<Hex, Hex> = HashMap::new();
     map.insert(hex(0, 0), hex(0, 0));
 
     let dat = postcard::to_stdvec(&map).expect("failed to postcard serialize");
     println!("data {:?}", dat.as_slice()); */
 
-    let ser_map = postcard::to_stdvec(&game_state.map).expect("failed to postcard map");
+/*     let ser_map = postcard::to_stdvec(&game_state.map).expect("failed to postcard map");
     println!("ser map: {}", ser_map.len());
 
     let ser_global = postcard::to_stdvec(&game_state.global).expect("failed to postcard global");
-    println!("ser global: {}", ser_global.len());
+    println!("ser global: {}", ser_global.len()); */
 
-    let keyframe = KeyFrame::from_existing(game_state.map.clone(), game_state.global.clone());
+    let keyframe = KeyFrame::from_existing(game_state.map.clone(), &game_state.world, game_state.global.clone(), actions.clone());
 
     let ser_keyframe = postcard::to_stdvec(&keyframe).expect("failed to postcard keyframe");
     println!("ser keyframe len: {}", ser_keyframe.len());
