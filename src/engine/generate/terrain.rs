@@ -1,6 +1,6 @@
 use ashscript_types::components::{
-    resource::{CoalNode, MineralNode},
-    terrain::{Terrain, Wall},
+    resource::{CoalNode, MineralNode, ResourceNode},
+    terrain::{Terrain, TerrainKind, Wall},
 };
 use hexx::{hex, shapes};
 use libnoise::prelude::*;
@@ -22,20 +22,20 @@ pub fn generate_terrain(game_state: &mut GameState) {
         };
 
         if noise > resource_noise_tresholds::WALL.0 && noise < resource_noise_tresholds::WALL.1 {
-            game_state.world.spawn((Terrain, Wall));
+            game_state.world.spawn((Terrain { kind: TerrainKind::Wall }, Wall));
 
             continue;
         }
 
         if noise > resource_noise_tresholds::COAL.0 && noise < resource_noise_tresholds::COAL.1 {
-            game_state.world.spawn((Terrain, CoalNode));
+            game_state.world.spawn((CoalNode {}, ResourceNode::new(0)));
             continue;
         }
 
         if noise > resource_noise_tresholds::MINERALS.0
             && noise < resource_noise_tresholds::MINERALS.1
         {
-            game_state.world.spawn((Terrain, MineralNode));
+            game_state.world.spawn((MineralNode {}, ResourceNode::new(0)));
             continue;
         }
 
