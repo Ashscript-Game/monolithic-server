@@ -325,6 +325,7 @@ fn create_factory_spawn_unit_actions(
                 body: intent.body,
                 name: intent.name.clone(),
                 cost,
+                owner: intent.owner,
             });
     }
 }
@@ -377,6 +378,7 @@ fn create_unit_spawn_unit_actions(
                 body: intent.body,
                 name: intent.name.clone(),
                 cost,
+                owner: intent.owner,
             });
     }
 }

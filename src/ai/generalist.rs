@@ -300,6 +300,7 @@ pub fn factories_spawn_units(
             out: None,
             name: "attacker".to_string(),
             body: UnitBody::from_vec(parts),
+            owner: owner.0,
         }));
     }
 }

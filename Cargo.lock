@@ -52,8 +52,8 @@ checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
 
 [[package]]
 name = "ashscript-types"
-version = "0.10.21"
-source = "git+https://github.com/Ashscript-Game/ashscript-types?branch=main#aba9f0df684cc6aa1ab8736845878bd5f3cd32d4"
+version = "0.10.22"
+source = "git+https://github.com/Ashscript-Game/ashscript-types?branch=main#177c71ba006f40775dd59a8e5c7cb4416f4d67c6"
 dependencies = [
  "bitcode",
  "enum-iterator",
