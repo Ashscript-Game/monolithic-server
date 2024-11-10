@@ -1,3 +1,5 @@
+use std::num::Wrapping;
+
 use ashscript_types::{
     actions::{self, ActionsByKind},
     components::{
@@ -97,7 +99,8 @@ fn process_unit_attack_actions(game_state: &mut GameState, actions: &[actions::U
             continue;
         };
 
-        attacker_energy.0 = (attacker_energy.0 - action.cost).max(0);
+        attacker_energy.0 = attacker_energy.0.wrapping_sub(action.cost);
+
 
         let Some(target_entity) = game_state
             .map
@@ -112,7 +115,7 @@ fn process_unit_attack_actions(game_state: &mut GameState, actions: &[actions::U
             continue;
         };
 
-        target_health.0 = (target_health.0 - action.damage).max(0);
+        target_health.0 = target_health.0.wrapping_sub(action.damage);
     }
 }
 
@@ -131,7 +134,7 @@ fn process_turret_attack_actions(game_state: &mut GameState, actions: &[actions:
             continue;
         };
 
-        turret_energy.0 -= action.cost;
+        turret_energy.0 = turret_energy.0.wrapping_sub(action.cost);
 
         let Some(target_entity) = game_state
             .map
@@ -146,7 +149,7 @@ fn process_turret_attack_actions(game_state: &mut GameState, actions: &[actions:
             continue;
         };
 
-        target_health.0 -= action.damage;
+        target_health.0 = target_health.0.wrapping_sub(action.damage);
     }
 }
 
