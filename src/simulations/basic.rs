@@ -41,12 +41,3 @@ pub fn generate(game_state: &mut GameState) {
         let _ = factory_storage.add_checked(&Resource::Metal, &1000);
     }
 }
-
-struct Turret {
-    pub energy: u32,
-    pub health: u32,
-    pub range: u32,
-    pub damage: u32,
-}
-
-struct HasRange(pub u32);
