@@ -19,8 +19,8 @@ pub fn generate(game_state: &mut GameState) {
         println!("generating player {} with id {}", i, id);
     }
 
-    let factory_hexes = [hex(8, 6), hex(-8, -3)];
-    let turret_hexes = [hex(10, 6), hex(-10, -3)];
+    let factory_hexes = [hex(14, -6), hex(-8, 4)];
+    let turret_hexes = [hex(17, -7), hex(-11, 5)];
 
     let player_ids = game_state
         .global
