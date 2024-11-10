@@ -39,7 +39,7 @@ pub fn generate(game_state: &mut GameState) {
         let (_, factory_storage) = game_state.world.query_one_mut::<(&Factory, &mut Storage)>(factory_entity).unwrap();
         factory_storage.capacity = 10_000;
 
-        let _ = factory_storage.add_checked(&Resource::Metal, &1000);
+        factory_storage.add_checked(&Resource::Metal, &1000).unwrap();
 
         // turrets
 
