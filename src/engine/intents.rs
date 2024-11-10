@@ -268,8 +268,6 @@ fn create_factory_spawn_unit_actions(
 ) {
     for intent in intents.iter() {
 
-        println!("c"); 
-
         let Some(factory_entity) = game_state
             .map
             .entity_at(&intent.factory_hex, GameObjectKind::Factory)
@@ -277,29 +275,21 @@ fn create_factory_spawn_unit_actions(
             continue;
         };
 
-        println!("b");
-
         let Ok((factory, storage)) = game_state
             .world
             .query_one_mut::<(&Factory, &mut Storage)>(*factory_entity)
         else {
             continue;
         };
-
-        println!("a");
 
         let cost = intent.body.cost();
         if !storage.has_sufficient_many(&cost) {
             continue;
         }
 
-        println!("z");
-
         let Some(out) = find_unit_out(&intent.out, intent.factory_hex, game_state) else {
             continue;
         };
-
-        println!("y");
 
         let Ok((factory, storage)) = game_state
             .world
@@ -308,14 +298,10 @@ fn create_factory_spawn_unit_actions(
             continue;
         };
 
-        println!("x");
-
         // should subtract from future_resources
         let Ok(()) = storage.subtract_many_checked(&cost) else {
             continue;
         };
-
-        println!("spawning unit: {}", intent.name);
 
         actions_by_kind
             .factory_spawn_unit
