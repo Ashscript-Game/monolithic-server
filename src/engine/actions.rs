@@ -49,9 +49,10 @@ fn process_move_action(
     to: Hex,
     cost: u32,
 ) -> Option<()> {
-    let chunk = game_state.map.chunks.get_mut(&from)?;
 
-    let entity = chunk.entities[GameObjectKind::Unit].remove(&from)?;
+    let chunk = game_state.map.chunk_at(&from)?;
+
+    let entity = *chunk.entities[GameObjectKind::Unit].get(&from)?;
 
     if game_state
         .map
@@ -59,20 +60,26 @@ fn process_move_action(
         .is_some()
     {
         if let Some((next_to, next_cost)) = actions_from_to.get(&to) {
-            process_move_action(game_state, actions_from_to, from, *next_to, *next_cost);
-        };
+            process_move_action(game_state, actions_from_to, to, *next_to, *next_cost);
+        }
+        else {
+            return None;
+        }
     }
 
     // The move is considered successful. Move the unit and charge it for doing so
 
-    let Ok(unit_energy) = game_state.world.query_one_mut::<&mut Energy>(entity) else {
-        return None;
-    };
-
-    let new_chunk = game_state.map.chunks.get_mut(&to)?;
-
+    let unit_energy = game_state.world.query_one_mut::<&mut Energy>(entity).ok()?;
     unit_energy.0 -= cost;
+
+    let chunk = game_state.map.chunk_at_mut(&from)?;
+    let _ = chunk.entities[GameObjectKind::Unit].remove(&from)?;
+
+    let new_chunk = game_state.map.chunk_at_mut(&to)?;
     new_chunk.entities[GameObjectKind::Unit].insert(to, entity);
+
+    let tile = game_state.world.query_one_mut::<&mut Tile>(entity).ok()?;
+    tile.hex = to;
 
     Some(())
 }
@@ -150,6 +157,15 @@ fn process_factory_spawn_unit_actions(
     actions: &[actions::FactorySpawnUnit],
 ) {
     for action in actions.iter() {
+        if game_state
+            .map
+            .entity_at(&action.out, GameObjectKind::Unit)
+            .is_some()
+        {
+            println!("UNIT ALREADY AT HEX TRYING TO SPAWN TO");
+            continue;
+        };
+
         let Some(entity) = game_state
             .map
             .entity_at(&action.factory_hex, GameObjectKind::Factory)
@@ -167,23 +183,12 @@ fn process_factory_spawn_unit_actions(
             continue;
         };
 
-        if game_state
-            .map
-            .entity_at(&action.out, GameObjectKind::Unit)
-            .is_some()
-        {
-            println!("UNIT ALREADY AT HEX TRYING TO SPAWN TO");
-            continue;
-        };
-
-        let owner_id = owner.0;
-
         new_unit(
             game_state,
             action.name.clone(),
             action.out,
             action.body,
-            owner_id,
+            action.owner,
         );
     }
 }

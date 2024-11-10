@@ -31,6 +31,7 @@ pub fn run_bots(game_state: &mut game_state::GameState) -> IntentsByKind {
         let Some(mut bot_game_state) = game_state::BotGameState::from_keyframe(keyframe) else {
             continue;
         };
+        
         bot_game_state.me.id = player_id;
 
         let Some(bot) = game_state.bots.get_mut(&player_id) else {

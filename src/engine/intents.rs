@@ -233,9 +233,11 @@ fn create_unit_move_action(
     game_state: &mut GameState,
     actions_by_kind: &mut ActionsByKind,
 ) -> bool {
+
     let Some(unit_entity) = game_state.map.entity_at(&from, GameObjectKind::Unit) else {
         return false;
     };
+
     let Ok((unit, body, unit_energy)) = game_state
         .world
         .query_one_mut::<(&Unit, &UnitBody, &Energy)>(*unit_entity)
@@ -248,11 +250,11 @@ fn create_unit_move_action(
         return false;
     }
 
-    for kind in IMPASSIBLE_GAME_OBJECTS.iter() {
-        if game_state.map.entity_at(&to, *kind).is_some() {
-            return false;
-        }
-    }
+    // for kind in IMPASSIBLE_GAME_OBJECTS.iter() {
+    //     if game_state.map.entity_at(&to, *kind).is_some() {
+    //         return false;
+    //     }
+    // }
 
     actions_by_kind
         .unit_move

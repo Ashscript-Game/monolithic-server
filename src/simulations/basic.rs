@@ -33,8 +33,6 @@ pub fn generate(game_state: &mut GameState) {
         // factories
 
         let hex = factory_hexes[i];
-        spawn_factory(game_state, hex, *player_id);
-
         let factory_entity = spawn_factory(game_state, hex, *player_id);
         let (_, factory_storage) = game_state.world.query_one_mut::<(&Factory, &mut Storage)>(factory_entity).unwrap();
         factory_storage.capacity = 10_000;

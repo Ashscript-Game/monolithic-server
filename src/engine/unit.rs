@@ -13,7 +13,7 @@ pub fn age_units(game_state: &mut GameState) {
         body.age += 1;
 
         // Age also increases based on how much uranium is being carried
-        body.age -= storage.resources.get(&Resource::Uranium).unwrap_or(&0) / 100;
+        body.age += storage.resources.get(&Resource::Uranium).unwrap_or(&0) / 100;
     }
 }
 

@@ -1,6 +1,12 @@
 use ashscript_types::{
     components::{
-        body::{UnitBody, UnitPart}, factory::Factory, owner::Owner, terrain::{self, Lava, Terrain, Wall}, tile::Tile, turret::Turret, unit::Unit
+        body::{UnitBody, UnitPart},
+        factory::Factory,
+        owner::Owner,
+        terrain::{self, Lava, Terrain, Wall},
+        tile::Tile,
+        turret::Turret,
+        unit::Unit,
     },
     intents::{FactorySpawnUnit, Intent, Intents, UnitAttack, UnitMove},
     objects::GameObjectKind,
@@ -41,11 +47,6 @@ pub fn spawn_units(game_state: &BotGameState, memory: &mut BotMemory) {
 
 pub fn organize_units(game_state: &BotGameState, memory: &mut BotMemory, bot_state: &mut BotState) {
     for (entity, (unit, tile, owner)) in game_state.world.query::<(&Unit, &Tile, &Owner)>().iter() {
-        println!(
-            "[generalist ai] found unit: {} at ({}, {})",
-            unit.name, tile.hex.x, tile.hex.y
-        );
-
         if owner.0 != game_state.me.id {
             continue;
         };
@@ -91,11 +92,6 @@ pub fn attackers_attack(
         let Some((unit, unit_body, unit_tile)) = unit_query.get() else {
             continue;
         };
-
-        println!(
-            "[generalist ai] unit is trying to attack: {} at ({}, {})",
-            unit.name, unit_tile.hex.x, unit_tile.hex.y
-        );
 
         let nearby_enemy_hexes = find_enemy_hexes_in_range(game_state, *hex, unit_body.range());
 
@@ -149,9 +145,14 @@ fn find_closest_enemy_hex(game_state: &BotGameState, around: Hex) -> Option<Hex>
 }
 
 fn find_enemy_hexes_in_range(game_state: &BotGameState, around: Hex, range: u32) -> Vec<Hex> {
-    let mut enemy_hexes = find_enemy_hexes(game_state);
+    let mut enemy_hexes = Vec::new();
 
     for hex in shapes::hexagon(around, range) {
+        let distance = around.unsigned_distance_to(hex);
+        if distance > range {
+            continue;
+        }
+
         let Some(entity) = game_state.map.entity_at(&hex, GameObjectKind::Unit) else {
             continue;
         };
