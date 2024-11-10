@@ -49,7 +49,6 @@ fn process_move_action(
     to: Hex,
     cost: u32,
 ) -> Option<()> {
-
     let chunk = game_state.map.chunk_at(&from)?;
 
     let entity = *chunk.entities[GameObjectKind::Unit].get(&from)?;
@@ -61,8 +60,7 @@ fn process_move_action(
     {
         if let Some((next_to, next_cost)) = actions_from_to.get(&to) {
             process_move_action(game_state, actions_from_to, to, *next_to, *next_cost);
-        }
-        else {
+        } else {
             return None;
         }
     }
@@ -99,7 +97,7 @@ fn process_unit_attack_actions(game_state: &mut GameState, actions: &[actions::U
             continue;
         };
 
-        attacker_energy.0 -= action.cost;
+        attacker_energy.0 = (attacker_energy.0 - action.cost).max(0);
 
         let Some(target_entity) = game_state
             .map
@@ -114,7 +112,7 @@ fn process_unit_attack_actions(game_state: &mut GameState, actions: &[actions::U
             continue;
         };
 
-        target_health.0 -= action.damage;
+        target_health.0 = (target_health.0 - action.damage).max(0);
     }
 }
 

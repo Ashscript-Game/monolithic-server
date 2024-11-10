@@ -292,7 +292,7 @@ pub fn factories_spawn_units(
 
         let parts = vec![
             (UnitPart::Generate, 5),
-            (UnitPart::Ranged, 1),
+            (UnitPart::Ranged, 3),
             (UnitPart::Shield, 1),
         ];
 
