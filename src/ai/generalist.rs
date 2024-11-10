@@ -1,14 +1,9 @@
 use ashscript_types::{
     components::{
-        body::{UnitBody, UnitPart},
-        owner::Owner,
-        terrain::{self, Lava, Terrain, Wall},
-        tile::Tile,
+        body::{UnitBody, UnitPart}, factory::Factory, owner::Owner, terrain::{self, Lava, Terrain, Wall}, tile::Tile, turret::Turret, unit::Unit
     },
     intents::{FactorySpawnUnit, Intent, Intents, UnitAttack, UnitMove},
     objects::GameObjectKind,
-    structures::{factory::Factory, turret::Turret},
-    unit::Unit,
 };
 use hecs::{Entity, Or};
 use hexx::{shapes, Hex};

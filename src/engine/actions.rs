@@ -9,7 +9,6 @@ use ashscript_types::{
         tile::Tile,
     },
     objects::GameObjectKind,
-    unit::Unit,
 };
 use hashbrown::HashMap;
 use hexx::Hex;

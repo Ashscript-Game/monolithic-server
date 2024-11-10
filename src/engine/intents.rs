@@ -1,13 +1,11 @@
 use ashscript_types::{
     actions::{self, ActionsByKind},
-    components::{body::UnitBody, energy::Energy, storage::Storage, tile::Tile},
+    components::{body::UnitBody, energy::Energy, factory::Factory, storage::Storage, tile::Tile, turret::Turret, unit::Unit},
     constants::structures::IMPASSIBLE_GAME_OBJECTS,
     entity,
     intents::{self, Intent, Intents},
     objects::GameObjectKind,
     resource::Resource,
-    structures::{factory::Factory, turret::Turret},
-    unit::Unit,
 };
 use hashbrown::HashMap;
 use hexx::Hex;

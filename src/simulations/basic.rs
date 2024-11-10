@@ -1,4 +1,4 @@
-use ashscript_types::{components::storage::Storage, objects::GameObjectKind, player::Player, resource::Resource, structures::factory::Factory};
+use ashscript_types::{components::{factory::Factory, owner::Owner, storage::Storage, tile::Tile}, objects::GameObjectKind, player::Player, resource::Resource};
 use hexx::hex;
 use uuid::Uuid;
 
@@ -20,6 +20,7 @@ pub fn generate(game_state: &mut GameState) {
     }
 
     let factory_hexes = [hex(8, 6), hex(-8, -3)];
+    let turret_hexes = [hex(10, 6), hex(-10, -3)];
 
     let player_ids = game_state
         .global
@@ -28,16 +29,21 @@ pub fn generate(game_state: &mut GameState) {
         .cloned()
         .collect::<Vec<Uuid>>();
     for (i, player_id) in player_ids.iter().enumerate() {
-        println!("spawning factory for player with id {}", player_id);
+
+        // factories
 
         let hex = factory_hexes[i];
-        spawn_turret(game_state, hex, *player_id);
-
+        spawn_factory(game_state, hex, *player_id);
 
         let factory_entity = spawn_factory(game_state, hex, *player_id);
         let (_, factory_storage) = game_state.world.query_one_mut::<(&Factory, &mut Storage)>(factory_entity).unwrap();
         factory_storage.capacity = 10_000;
 
         let _ = factory_storage.add_checked(&Resource::Metal, &1000);
+
+        // turrets
+
+        let hex = turret_hexes[i];
+        spawn_turret(game_state, hex, *player_id);
     }
 }

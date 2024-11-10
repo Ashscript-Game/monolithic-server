@@ -1,4 +1,4 @@
-use ashscript_types::{components::body::{UnitBody, UnitPart}, player::PlayerId, unit::Unit};
+use ashscript_types::{components::{body::{UnitBody, UnitPart}, unit::Unit}, player::PlayerId};
 use hecs::World;
 use hexx::Hex;
 

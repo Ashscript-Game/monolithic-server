@@ -1,4 +1,4 @@
-use ashscript_types::{components::{energy::Energy, health::Health, tile::Tile}, structures::turret::Turret, unit::Unit};
+use ashscript_types::components::{energy::Energy, health::Health, tile::Tile, turret::Turret};
 use hexx::Hex;
 
 pub fn turret_attack_cost(turret: &Turret) -> u32 {

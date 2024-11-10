@@ -54,7 +54,6 @@ pub fn generate_terrain(game_state: &mut GameState) {
 
             if noise > resource_noise_tresholds::LAVA.0 && noise < resource_noise_tresholds::LAVA.1
             {
-                println!("generated lava");
                 game_state.world.spawn((
                     Terrain {
                         kind: TerrainKind::Lava,

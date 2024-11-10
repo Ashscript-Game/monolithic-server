@@ -1,9 +1,8 @@
 use ashscript_types::{
     actions::UnitAttack,
-    components::{body::UnitBody, energy::Energy, health::Health, storage::Storage, tile::Tile},
+    components::{body::UnitBody, energy::Energy, health::Health, storage::Storage, tile::Tile, unit::Unit},
     player::PlayerId,
     resource::Resource,
-    unit::Unit,
 };
 use hexx::Hex;
 

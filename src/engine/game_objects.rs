@@ -1,4 +1,4 @@
-use ashscript_types::{components::{energy::Energy, health::{self, Health}, storage::Storage}, unit::Unit};
+use ashscript_types::{components::{energy::Energy, health::{self, Health}, storage::Storage}};
 use enum_iterator::all;
 
 use crate::game_state::GameState;
