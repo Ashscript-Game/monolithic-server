@@ -114,11 +114,7 @@ fn process_unit_attack_actions(game_state: &mut GameState, actions: &[actions::U
             .ok()
             .unwrap();
 
-        println!("target health: {}", target_health.0);
-
         target_health.0 = target_health.0.saturating_sub(action.damage);
-
-        println!("target health after {} ", target_health.0);
     }
 }
 
