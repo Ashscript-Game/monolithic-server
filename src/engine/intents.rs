@@ -160,20 +160,17 @@ fn create_unit_attack_actions(
             continue;
         };
         let (damage, cost) = {
-            let Ok((unit, body, tile, unit_energy)) =
+            let (unit, body, unit_energy) =
                 game_state
                     .world
-                    .query_one_mut::<(&Unit, &UnitBody, &Tile, &Energy)>(*unit_entity)
-            else {
-                continue;
-            };
+                    .query_one_mut::<(&Unit, &UnitBody, &Energy)>(*unit_entity).ok().unwrap();
 
             let cost = body.attack_cost();
             if unit_energy.0 < cost {
                 continue;
             }
 
-            if tile.hex.unsigned_distance_to(intent.target_hex) > body.range() {
+            if intent.attacker_hex.unsigned_distance_to(intent.target_hex) > body.range() {
                 continue;
             }
 
@@ -191,7 +188,7 @@ fn create_unit_attack_actions(
         let Ok(unit_energy) = game_state.world.query_one_mut::<&mut Energy>(*unit_entity) else {
             continue;
         };
-        unit_energy.0 = 0.max(unit_energy.0 - cost);
+        unit_energy.0 = unit_energy.0.saturating_sub(cost);
 
         actions_by_kind.unit_attack.push(actions::UnitAttack {
             attacker_hex: intent.attacker_hex,

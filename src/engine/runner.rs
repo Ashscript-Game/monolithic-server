@@ -43,7 +43,7 @@ pub async fn tick(game_state: &mut GameState, sender: &mut Sender<Arc<Vec<u8>>>)
 
     simulations::basic::update(game_state);
 
-    sleep(Duration::from_secs(1)).await;
+    sleep(Duration::new(0, 500)).await;
 
     // record how long the tick took
 

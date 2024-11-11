@@ -100,7 +100,7 @@ fn process_unit_attack_actions(game_state: &mut GameState, actions: &[actions::U
             .ok()
             .unwrap();
 
-        attacker_energy.0 = attacker_energy.0.saturating_sub(action.cost);
+        /* attacker_energy.0 = attacker_energy.0.saturating_sub(action.cost); */
 
         let Some(target_entity) = game_state
             .map

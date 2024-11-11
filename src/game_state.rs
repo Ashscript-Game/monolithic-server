@@ -26,7 +26,7 @@ impl GameState {
 
         let (tile, kind) = self.world.query_one_mut::<(&Tile, &GameObjectKind)>(entity).ok()?;
 
-        self.map.remove_entity(&tile.hex, *kind);
+        self.map.remove_entity(&tile.hex, *kind)?;
         self.world.despawn(entity).ok()
     }
 }

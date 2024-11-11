@@ -2,6 +2,7 @@ use ashscript_types::{
     components::{
         body::{UnitBody, UnitPart},
         factory::Factory,
+        health::Health,
         owner::Owner,
         terrain::{self, Lava, Terrain, Wall},
         tile::Tile,
@@ -86,19 +87,29 @@ pub fn attackers_attack(
         let Some(unit_entity) = game_state.map.entity_at(hex, GameObjectKind::Unit) else {
             continue;
         };
-        let mut unit_query = game_state
+        let Ok((unit, unit_body, unit_tile)) = game_state
             .world
-            .query_one::<(&Unit, &UnitBody, &Tile)>(*unit_entity)
-            .unwrap();
-        let Some((unit, unit_body, unit_tile)) = unit_query.get() else {
+            .query_one_mut::<(&Unit, &UnitBody, &Tile)>(*unit_entity)
+        else {
             continue;
         };
 
-        let nearby_enemy_hexes = find_enemy_hexes_in_range(game_state, *hex, unit_body.range());
+        let unit_hex = unit_tile.hex;
+        let damage = unit_body.damage();
+        let range = unit_body.range();
+
+        let nearby_enemy_hexes = find_enemy_hexes_in_range(game_state, *hex, range, damage);
 
         if let Some(enemy_hex) = nearby_enemy_hexes.first() {
-            attack_enemy(game_state, unit_tile.hex, *enemy_hex, GameObjectKind::Unit, intents);
-            move_unit(game_state, *hex, (*enemy_hex, unit_body.range()), intents);
+            attack_enemy(
+                game_state,
+                unit_hex,
+                *enemy_hex,
+                GameObjectKind::Unit,
+                damage,
+                intents,
+            );
+            move_unit(game_state, *hex, (*enemy_hex, range), intents);
             continue;
         };
 
@@ -106,7 +117,7 @@ pub fn attackers_attack(
             continue;
         };
 
-        move_unit(game_state, *hex, (enemy_hex, unit_body.range()), intents);
+        move_unit(game_state, *hex, (enemy_hex, range), intents);
     }
 }
 
@@ -145,7 +156,12 @@ fn find_closest_enemy_hex(game_state: &BotGameState, around: Hex) -> Option<Hex>
     closest_enemy_hex
 }
 
-fn find_enemy_hexes_in_range(game_state: &BotGameState, around: Hex, range: u32) -> Vec<Hex> {
+fn find_enemy_hexes_in_range(
+    game_state: &BotGameState,
+    around: Hex,
+    range: u32,
+    damage: u32,
+) -> Vec<Hex> {
     let mut enemy_hexes = Vec::new();
 
     for hex in shapes::hexagon(around, range) {
@@ -159,9 +175,13 @@ fn find_enemy_hexes_in_range(game_state: &BotGameState, around: Hex, range: u32)
         };
         let mut query = game_state
             .world
-            .query_one::<(&Unit, &Owner)>(*entity)
+            .query_one::<(&Unit, &Owner, &Health)>(*entity)
             .unwrap();
-        let Some((unit, owner)) = query.get() else {
+        let Some((unit, owner, health)) = query.get() else {
+            continue;
+        };
+
+        if health.0 == 0 {
             continue;
         };
 
@@ -175,10 +195,26 @@ fn find_enemy_hexes_in_range(game_state: &BotGameState, around: Hex, range: u32)
     enemy_hexes
 }
 
-fn attack_enemy(game_state: &BotGameState, unit_hex: Hex, enemy_hex: Hex, target_kind: GameObjectKind, intents: &mut Intents) {
+fn attack_enemy(
+    game_state: &mut BotGameState,
+    unit_hex: Hex,
+    enemy_hex: Hex,
+    target_kind: GameObjectKind,
+    damage: u32,
+    intents: &mut Intents,
+) {
     // decide wether to attack based on current energy, shield health, and move needs
 
     //
+
+    let enemy_entity = game_state.map.entity_at(&enemy_hex, target_kind).unwrap();
+    let health = game_state
+        .world
+        .query_one_mut::<&mut Health>(*enemy_entity)
+        .ok()
+        .unwrap();
+
+    health.0 = health.0.saturating_sub(damage);
 
     intents.push(Intent::UnitAttack(UnitAttack {
         attacker_hex: unit_hex,
@@ -209,13 +245,21 @@ fn move_unit(
                 .world
                 .query_one::<&Lava>(*terrain_entity)
                 .ok()?
-                .get().is_some() { return None };
+                .get()
+                .is_some()
+            {
+                return None;
+            };
 
-                if game_state
+            if game_state
                 .world
                 .query_one::<&Wall>(*terrain_entity)
                 .ok()?
-                .get().is_some() { return None };
+                .get()
+                .is_some()
+            {
+                return None;
+            };
         }
 
         if unit_hexes.contains(&bhex) {
