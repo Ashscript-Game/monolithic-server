@@ -51,9 +51,9 @@ fn process_move_action(
     to: Hex,
     cost: u32,
 ) -> Option<()> {
-    let chunk = game_state.map.chunk_at(&from)?;
+    let chunk = game_state.map.chunk_at(&from).unwrap();
 
-    let entity = *chunk.entities[GameObjectKind::Unit].get(&from)?;
+    let entity = *chunk.entities[GameObjectKind::Unit].get(&from).unwrap();
 
     if game_state
         .map
@@ -72,13 +72,13 @@ fn process_move_action(
     let unit_energy = game_state.world.query_one_mut::<&mut Energy>(entity).ok()?;
     unit_energy.0 -= cost;
 
-    let chunk = game_state.map.chunk_at_mut(&from)?;
-    let _ = chunk.entities[GameObjectKind::Unit].remove(&from)?;
+    let chunk = game_state.map.chunk_at_mut(&from).unwrap();
+    let _ = chunk.entities[GameObjectKind::Unit].remove(&from).unwrap();
 
-    let new_chunk = game_state.map.chunk_at_mut(&to)?;
+    let new_chunk = game_state.map.chunk_at_mut(&to).unwrap();
     new_chunk.entities[GameObjectKind::Unit].insert(to, entity);
 
-    let tile = game_state.world.query_one_mut::<&mut Tile>(entity).ok()?;
+    let tile = game_state.world.query_one_mut::<&mut Tile>(entity).ok().unwrap();
     tile.hex = to;
 
     Some(())
@@ -158,14 +158,6 @@ fn process_factory_spawn_unit_actions(
     actions: &[actions::FactorySpawnUnit],
 ) {
     for action in actions.iter() {
-        if game_state
-            .map
-            .entity_at(&action.out, GameObjectKind::Unit)
-            .is_some()
-        {
-            println!("UNIT ALREADY AT HEX TRYING TO SPAWN TO");
-            continue;
-        };
 
         let Some(entity) = game_state
             .map

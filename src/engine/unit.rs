@@ -23,14 +23,10 @@ pub fn units_generate_energy(game_state: &mut GameState) {
     }
 }
 
-pub fn delete_dead_units(game_state: &mut GameState) {
-    for (entity, (body, health)) in game_state.world.query_mut::<(&UnitBody, &Health)>() {
+pub fn delete_old_units(game_state: &mut GameState) {
+    for (entity, body) in game_state.world.query_mut::<&UnitBody>() {
         if body.age >= body.max_age() {
-            game_state.world.despawn(entity);
-            return;
-        }
-        if health.0 == 0 {
-            game_state.world.despawn(entity);
+            game_state.despawn_entity(entity);
             return;
         }
     }

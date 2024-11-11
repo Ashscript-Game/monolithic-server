@@ -1,11 +1,11 @@
 use ashscript_types::{
-    components::{
+    chunk::Chunk, components::{
         resource::{CoalNode, MineralNode, ResourceNode},
         terrain::{Lava, Terrain, TerrainKind, Wall},
         tile::Tile,
-    },
-    constants::map::CHUNK_SIZE,
+    }, constants::map::CHUNK_SIZE, objects::GameObjectKind
 };
+use hecs::{Entity, World};
 use hexx::{hex, shapes, Hex};
 use libnoise::prelude::*;
 
@@ -15,7 +15,8 @@ use crate::{
 };
 
 pub fn generate_terrain(game_state: &mut GameState) {
-    for chunk_hex in game_state.map.chunks.keys() {
+
+    for (chunk_hex, chunk) in game_state.map.chunks.iter_mut() {
         for hex in shapes::hexagon(chunk_hex.to_higher_res(CHUNK_SIZE), CHUNK_SIZE) {
             let noise = SIMPLEX_GENERATOR.sample([
                 hex.x as f64,
@@ -24,43 +25,44 @@ pub fn generate_terrain(game_state: &mut GameState) {
 
             if noise > resource_noise_tresholds::WALL.0 && noise < resource_noise_tresholds::WALL.1
             {
-                game_state.world.spawn((
-                    Terrain {
-                        kind: TerrainKind::Wall,
-                    },
-                    Wall,
-                    Tile::new(hex),
-                ));
 
+                spawn_wall_entity(&mut game_state.world, hex, chunk);
                 continue;
             }
 
             if noise > resource_noise_tresholds::COAL.0 && noise < resource_noise_tresholds::COAL.1
             {
-                game_state
+                let entity = game_state
                     .world
                     .spawn((CoalNode {}, ResourceNode::new(0), Tile::new(hex)));
+                chunk.entities[GameObjectKind::Terrain].insert(hex, entity);
+
+                spawn_wall_entity(&mut game_state.world, hex, chunk);
                 continue;
             }
 
             if noise > resource_noise_tresholds::MINERALS.0
                 && noise < resource_noise_tresholds::MINERALS.1
             {
-                game_state
+                let entity = game_state
                     .world
                     .spawn((MineralNode {}, ResourceNode::new(0), Tile::new(hex)));
+                chunk.entities[GameObjectKind::Terrain].insert(hex, entity);
+
+                spawn_wall_entity(&mut game_state.world, hex, chunk);
                 continue;
             }
 
             if noise > resource_noise_tresholds::LAVA.0 && noise < resource_noise_tresholds::LAVA.1
             {
-                game_state.world.spawn((
+                let entity = game_state.world.spawn((
                     Terrain {
                         kind: TerrainKind::Lava,
                     },
                     Lava,
                     Tile::new(hex),
                 ));
+                chunk.entities[GameObjectKind::Terrain].insert(hex, entity);
                 continue;
             }
         }
@@ -75,4 +77,14 @@ pub fn generate_terrain(game_state: &mut GameState) {
     //     );
     //     continue;
     // }
+}
+
+fn spawn_wall_entity(world: &mut World, hex: Hex, chunk: &mut Chunk) -> Entity {
+    world.spawn((
+        Terrain {
+            kind: TerrainKind::Wall,
+        },
+        Wall,
+        Tile::new(hex),
+    ))
 }

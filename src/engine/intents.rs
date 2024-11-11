@@ -1,6 +1,9 @@
 use ashscript_types::{
     actions::{self, ActionsByKind},
-    components::{body::UnitBody, energy::Energy, factory::Factory, storage::Storage, tile::Tile, turret::Turret, unit::Unit},
+    components::{
+        body::UnitBody, energy::Energy, factory::Factory, storage::Storage, tile::Tile,
+        turret::Turret, unit::Unit,
+    },
     constants::structures::IMPASSIBLE_GAME_OBJECTS,
     entity,
     intents::{self, Intent, Intents},
@@ -232,35 +235,43 @@ fn create_unit_move_action(
     intents_from_to: &HashMap<Hex, Hex>,
     game_state: &mut GameState,
     actions_by_kind: &mut ActionsByKind,
-) -> bool {
+) -> Option<()> {
+    let unit_entity = game_state.map.entity_at(&from, GameObjectKind::Unit)?;
 
-    let Some(unit_entity) = game_state.map.entity_at(&from, GameObjectKind::Unit) else {
-        return false;
-    };
-
-    let Ok((unit, body, unit_energy)) = game_state
+    let (unit, body, unit_energy) = game_state
         .world
-        .query_one_mut::<(&Unit, &UnitBody, &Energy)>(*unit_entity)
-    else {
-        return false;
-    };
+        .query_one_mut::<(&Unit, &UnitBody, &Energy)>(*unit_entity).ok()?;
 
-    let cost = body.weight();
+    let cost = body.weight() as u32; // round up
     if cost > unit_energy.0 {
-        return false;
+        return None;
     }
 
-    // for kind in IMPASSIBLE_GAME_OBJECTS.iter() {
-    //     if game_state.map.entity_at(&to, *kind).is_some() {
-    //         return false;
-    //     }
-    // }
+    for kind in IMPASSIBLE_GAME_OBJECTS.iter() {
+
+        let Some(entity) = game_state.map.entity_at(&to, *kind) else {
+            continue;    
+        };
+
+        match kind {
+            GameObjectKind::Unit => {
+                let next_to = intents_from_to.get(&to)?;
+
+                create_unit_move_action((to, *next_to), intents_from_to, game_state, actions_by_kind)?;
+            }
+            _ => {
+                if game_state.map.entity_at(&to, *kind).is_some() {
+                    return None;
+                }
+            }
+        }
+    }
 
     actions_by_kind
         .unit_move
         .push(actions::UnitMove { from, to, cost });
 
-    true
+    Some(())
 }
 
 fn create_factory_spawn_unit_actions(
@@ -269,7 +280,6 @@ fn create_factory_spawn_unit_actions(
     actions_by_kind: &mut ActionsByKind,
 ) {
     for intent in intents.iter() {
-
         let Some(factory_entity) = game_state
             .map
             .entity_at(&intent.factory_hex, GameObjectKind::Factory)
@@ -302,6 +312,15 @@ fn create_factory_spawn_unit_actions(
 
         // should subtract from future_resources
         let Ok(()) = storage.subtract_many_checked(&cost) else {
+            continue;
+        };
+
+        if game_state
+            .map
+            .entity_at(&out, GameObjectKind::Unit)
+            .is_some()
+        {
+            println!("UNIT ALREADY AT HEX TRYING TO SPAWN TO");
             continue;
         };
 

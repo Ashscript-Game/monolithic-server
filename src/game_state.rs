@@ -1,6 +1,7 @@
-use ashscript_types::{global::Global, keyframe::KeyFrame, map::Map, player::PlayerId, world::deserialize_world_data};
+use ashscript_types::{actions::ActionsByKind, global::Global, keyframe::KeyFrame, map::Map, objects::GameObjectKind, player::PlayerId, world::deserialize_world_data};
 use hashbrown::HashMap;
-use hecs::World;
+use hecs::{Entity, World};
+use hexx::Hex;
 use serde::Serialize;
 use uuid::Uuid;
 
@@ -17,6 +18,14 @@ impl GameState {
         Self {
             ..Default::default()
         }
+    }
+
+    pub fn despawn_entity(&mut self, entity: Entity) -> Option<()> {
+
+        let (hex, kind) = self.world.query_one_mut::<(&Hex, &GameObjectKind)>(entity).ok()?;
+
+        self.map.remove_entity(hex, *kind)?;
+        self.world.despawn(entity).ok()
     }
 }
 
