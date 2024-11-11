@@ -4,7 +4,7 @@ use crate::{
     },
     game_state::GameState, simulations,
 };
-use std::{sync::Arc, time::Duration};
+use std::{sync::Arc, time::{self, Duration}};
 use tokio::{sync::broadcast::Sender, time::sleep};
 
 use super::{
@@ -20,6 +20,8 @@ pub async fn runner(game_state: &mut GameState, mut sender: Sender<Arc<Vec<u8>>>
 
 pub async fn tick(game_state: &mut GameState, sender: &mut Sender<Arc<Vec<u8>>>) {
     println!("\n starting tick: {}", game_state.global.tick);
+
+    let start_time = time::Instant::now();
 
     let actions_by_kind = get_and_process_intents(game_state);
 
@@ -44,5 +46,5 @@ pub async fn tick(game_state: &mut GameState, sender: &mut Sender<Arc<Vec<u8>>>)
 
     // record how long the tick took
 
-    
+    game_state.global.last_tick_duration = start_time.elapsed();
 }
