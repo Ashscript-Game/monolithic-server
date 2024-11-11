@@ -97,7 +97,7 @@ pub fn attackers_attack(
         let nearby_enemy_hexes = find_enemy_hexes_in_range(game_state, *hex, unit_body.range());
 
         if let Some(enemy_hex) = nearby_enemy_hexes.first() {
-            attack_enemy(game_state, unit_tile.hex, *enemy_hex, intents);
+            attack_enemy(game_state, unit_tile.hex, *enemy_hex, GameObjectKind::Unit, intents);
             move_unit(game_state, *hex, (*enemy_hex, unit_body.range()), intents);
             continue;
         };
@@ -175,7 +175,7 @@ fn find_enemy_hexes_in_range(game_state: &BotGameState, around: Hex, range: u32)
     enemy_hexes
 }
 
-fn attack_enemy(game_state: &BotGameState, unit_hex: Hex, enemy_hex: Hex, intents: &mut Intents) {
+fn attack_enemy(game_state: &BotGameState, unit_hex: Hex, enemy_hex: Hex, target_kind: GameObjectKind, intents: &mut Intents) {
     // decide wether to attack based on current energy, shield health, and move needs
 
     //
