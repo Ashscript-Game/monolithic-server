@@ -5,6 +5,7 @@ use crate::{
     game_state::GameState, simulations,
 };
 use std::{sync::Arc, time::{self, Duration}};
+use ashscript_types::components::health::Health;
 use tokio::{sync::broadcast::Sender, time::sleep};
 
 use super::{
