@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use ashscript_types::{actions::ActionsByKind, global::Global, keyframe::KeyFrame, map::Map, objects::GameObjectKind, player::PlayerId, world::deserialize_world_data};
+use ashscript_types::{actions::ActionsByKind, components::tile::Tile, global::Global, keyframe::KeyFrame, map::Map, objects::GameObjectKind, player::PlayerId, world::deserialize_world_data};
 use hashbrown::HashMap;
 use hecs::{Entity, World};
 use hexx::Hex;
@@ -24,9 +24,9 @@ impl GameState {
 
     pub fn despawn_entity(&mut self, entity: Entity) -> Option<()> {
 
-        let (hex, kind) = self.world.query_one_mut::<(&Hex, &GameObjectKind)>(entity).ok()?;
+        let (tile, kind) = self.world.query_one_mut::<(&Tile, &GameObjectKind)>(entity).ok()?;
 
-        self.map.remove_entity(hex, *kind)?;
+        self.map.remove_entity(&tile.hex, *kind);
         self.world.despawn(entity).ok()
     }
 }

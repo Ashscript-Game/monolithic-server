@@ -8,13 +8,13 @@ pub fn delete_0_health(game_state: &mut GameState) {
 
     for (entity, (health)) in &mut game_state.world.query::<&Health>() {
         if health.0 == 0 {
-            println!("killed entity");
             remove_entities.push(entity);
             continue;
         }
     }
 
     for entity in remove_entities {
-        game_state.despawn_entity(entity);
+        let result = game_state.despawn_entity(entity);
+        println!("despawn result: {result:?}");
     }
 }

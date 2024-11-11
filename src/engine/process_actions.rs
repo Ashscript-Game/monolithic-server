@@ -51,7 +51,7 @@ fn process_move_action(
 ) -> Option<()> {
     let chunk = game_state.map.chunk_at(&from).unwrap();
 
-    let entity = *chunk.entities[GameObjectKind::Unit].get(&from).unwrap();
+    let entity = *chunk.entities[GameObjectKind::Unit].get(&from)?;
 
     if game_state
         .map
