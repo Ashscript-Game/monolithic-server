@@ -13,6 +13,7 @@ use ashscript_types::{
 };
 use hecs::{Entity, Or};
 use hexx::{shapes, Hex};
+use rand::random;
 
 use crate::game_state::BotGameState;
 
@@ -204,11 +205,17 @@ fn move_unit(
         }
 
         if let Some(terrain_entity) = game_state.map.entity_at(&bhex, GameObjectKind::Terrain) {
-            game_state
+            if game_state
                 .world
-                .query_one::<Or<&Lava, &Wall>>(*terrain_entity)
+                .query_one::<&Lava>(*terrain_entity)
                 .ok()?
-                .get()?;
+                .get().is_some() { return None };
+
+                if game_state
+                .world
+                .query_one::<&Wall>(*terrain_entity)
+                .ok()?
+                .get().is_some() { return None };
         }
 
         if unit_hexes.contains(&bhex) {
@@ -286,13 +293,16 @@ pub fn factories_spawn_units(
         };
 
         println!(
-            "[generalist ai] trying to spawn a unit at ({}, {})",
+            "[generalist ai] trying to spawn a unit from factory at ({}, {})",
             tile.hex.x, tile.hex.y
         );
 
+        let bonus_generate = random::<u32>() % 8;
+        let bonus_ranged = random::<u32>() % 6;
+
         let parts = vec![
-            (UnitPart::Generate, 5),
-            (UnitPart::Ranged, 3),
+            (UnitPart::Generate, 10 + bonus_generate),
+            (UnitPart::Ranged, 3 + bonus_ranged),
             (UnitPart::Shield, 1),
         ];
 

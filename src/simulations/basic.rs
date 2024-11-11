@@ -1,4 +1,4 @@
-use ashscript_types::{components::{factory::Factory, owner::Owner, storage::Storage, tile::Tile}, objects::GameObjectKind, player::Player, resource::Resource};
+use ashscript_types::{components::{energy::Energy, factory::Factory, owner::Owner, storage::Storage, tile::Tile, turret::Turret}, objects::GameObjectKind, player::Player, resource::Resource};
 use hexx::hex;
 use uuid::Uuid;
 
@@ -42,6 +42,16 @@ pub fn generate(game_state: &mut GameState) {
         // turrets
 
         let hex = turret_hexes[i];
-        spawn_turret(game_state, hex, *player_id);
+        let turret_entity = spawn_turret(game_state, hex, *player_id);
+        let (_, turret_energy) = game_state.world.query_one_mut::<(&Turret, &mut Energy)>(turret_entity).unwrap();
+
+        turret_energy.0 = 1000;
+    }
+}
+
+pub fn update(game_state: &mut GameState) {
+
+    for (entity, (factory, storage)) in &mut game_state.world.query::<(&Factory, &mut Storage)>() {
+        let _ = storage.add_checked(&Resource::Metal, &1000);
     }
 }
