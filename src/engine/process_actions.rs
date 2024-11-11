@@ -78,7 +78,11 @@ fn process_move_action(
     let new_chunk = game_state.map.chunk_at_mut(&to).unwrap();
     new_chunk.entities[GameObjectKind::Unit].insert(to, entity);
 
-    let tile = game_state.world.query_one_mut::<&mut Tile>(entity).ok().unwrap();
+    let tile = game_state
+        .world
+        .query_one_mut::<&mut Tile>(entity)
+        .ok()
+        .unwrap();
     tile.hex = to;
 
     Some(())
@@ -92,15 +96,13 @@ fn process_unit_attack_actions(game_state: &mut GameState, actions: &[actions::U
         else {
             continue;
         };
-        let Ok(attacker_energy) = game_state
+        let attacker_energy = game_state
             .world
             .query_one_mut::<&mut Energy>(*attacker_entity)
-        else {
-            continue;
-        };
+            .ok()
+            .unwrap();
 
         attacker_energy.0 = attacker_energy.0.wrapping_sub(action.cost);
-
 
         let Some(target_entity) = game_state
             .map
@@ -108,12 +110,11 @@ fn process_unit_attack_actions(game_state: &mut GameState, actions: &[actions::U
         else {
             continue;
         };
-        let Ok(target_health) = game_state
+        let target_health = game_state
             .world
             .query_one_mut::<&mut Health>(*target_entity)
-        else {
-            continue;
-        };
+            .ok()
+            .unwrap();
 
         target_health.0 = target_health.0.wrapping_sub(action.damage);
     }
@@ -158,7 +159,6 @@ fn process_factory_spawn_unit_actions(
     actions: &[actions::FactorySpawnUnit],
 ) {
     for action in actions.iter() {
-
         let Some(entity) = game_state
             .map
             .entity_at(&action.factory_hex, GameObjectKind::Factory)

@@ -79,12 +79,13 @@ pub fn generate_terrain(game_state: &mut GameState) {
     // }
 }
 
-fn spawn_wall_entity(world: &mut World, hex: Hex, chunk: &mut Chunk) -> Entity {
-    world.spawn((
+fn spawn_wall_entity(world: &mut World, hex: Hex, chunk: &mut Chunk) {
+    let entity = world.spawn((
         Terrain {
             kind: TerrainKind::Wall,
         },
         Wall,
         Tile::new(hex),
-    ))
+    ));
+    chunk.entities[GameObjectKind::Terrain].insert(hex, entity);
 }
