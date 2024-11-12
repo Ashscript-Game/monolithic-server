@@ -29,10 +29,10 @@ pub fn turret_attack(turret: &Turret, turret_tile: Tile, turret_energy: &mut Ene
     }
 
     let damage = turret.damage();
-    if damage > unit_health.0 {
-        unit_health.0 = 0
+    if damage > unit_health.current {
+        unit_health.current = 0
     } else {
-        unit_health.0 -= damage
+        unit_health.current -= damage
     }
 
     turret_energy.0 -= attack_cost;

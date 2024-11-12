@@ -7,7 +7,7 @@ pub fn delete_0_health(game_state: &mut GameState) {
     let mut remove_entities: Vec<Entity> = Vec::new();
 
     for (entity, (health)) in &mut game_state.world.query::<&Health>() {
-        if health.0 == 0 {
+        if health.current == 0 {
             remove_entities.push(entity);
             continue;
         }

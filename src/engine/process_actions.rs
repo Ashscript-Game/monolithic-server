@@ -114,7 +114,7 @@ fn process_unit_attack_actions(game_state: &mut GameState, actions: &[actions::U
             .ok()
             .unwrap();
 
-        target_health.0 = target_health.0.saturating_sub(action.damage);
+        target_health.current = target_health.current.saturating_sub(action.damage);
     }
 }
 
@@ -148,7 +148,7 @@ fn process_turret_attack_actions(game_state: &mut GameState, actions: &[actions:
             continue;
         };
 
-        target_health.0 = target_health.0.saturating_sub(action.damage);
+        target_health.current = target_health.current.saturating_sub(action.damage);
     }
 }
 

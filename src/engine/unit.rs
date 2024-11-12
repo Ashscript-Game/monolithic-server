@@ -64,10 +64,10 @@ pub fn attack(
     }
 
     let damage = attacker_body.damage();
-    if damage > target_health.0 {
-        target_health.0 = 0
+    if damage > target_health.current {
+        target_health.current = 0
     } else {
-        target_health.0 -= damage
+        target_health.current -= damage
     }
 
     attacker_energy.0 -= cost;

@@ -29,7 +29,7 @@ pub async fn tick(game_state: &mut GameState, sender: &mut Sender<Arc<Vec<u8>>>)
     emit_tick(game_state, &actions_by_kind, sender);
 
     process_actions(game_state, &actions_by_kind);
-
+    
     println!("actions_by_kind: {:?}", actions_by_kind);
 
     age_units(game_state);

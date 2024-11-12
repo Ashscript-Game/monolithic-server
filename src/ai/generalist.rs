@@ -181,7 +181,7 @@ fn find_enemy_hexes_in_range(
             continue;
         };
 
-        if health.0 == 0 {
+        if health.current == 0 {
             continue;
         };
 
@@ -214,7 +214,7 @@ fn attack_enemy(
         .ok()
         .unwrap();
 
-    health.0 = health.0.saturating_sub(damage);
+    health.current = health.current.saturating_sub(damage);
 
     intents.push(Intent::UnitAttack(UnitAttack {
         attacker_hex: unit_hex,
