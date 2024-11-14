@@ -10,7 +10,7 @@ use ashscript_types::{
     objects::GameObjectKind,
     resource::Resource,
 };
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use hexx::Hex;
 
 use crate::game_state::GameState;
@@ -212,6 +212,9 @@ fn create_unit_move_actions(
     //        try to move unit
 
     // <From, To>
+
+    let mut taken_tos: HashSet<Hex> = HashSet::new();
+
     let mut intents_from_to: HashMap<Hex, Hex> = HashMap::new();
     for intent in intents.iter() {
         intents_from_to.insert(intent.from, intent.to);
@@ -221,6 +224,7 @@ fn create_unit_move_actions(
         create_unit_move_action(
             (intent.from, intent.to),
             &intents_from_to,
+            &mut taken_tos,
             game_state,
             actions_by_kind,
         );
@@ -230,9 +234,15 @@ fn create_unit_move_actions(
 fn create_unit_move_action(
     (from, to): (Hex, Hex),
     intents_from_to: &HashMap<Hex, Hex>,
+    taken_tos: &mut HashSet<Hex>,
     game_state: &mut GameState,
     actions_by_kind: &mut ActionsByKind,
 ) -> Option<()> {
+    // Don't let anybody move if someone else has already taken to to position
+    if taken_tos.contains(&to) {
+        return None;
+    }
+
     let unit_entity = game_state.map.entity_at(&from, GameObjectKind::Unit)?;
 
     let (unit, body, unit_energy) = game_state
@@ -254,7 +264,7 @@ fn create_unit_move_action(
             GameObjectKind::Unit => {
                 let next_to = intents_from_to.get(&to)?;
 
-                create_unit_move_action((to, *next_to), intents_from_to, game_state, actions_by_kind)?;
+                create_unit_move_action((to, *next_to), intents_from_to, taken_tos, game_state, actions_by_kind)?;
             }
             _ => {
                 if game_state.map.entity_at(&to, *kind).is_some() {
@@ -263,6 +273,8 @@ fn create_unit_move_action(
             }
         }
     }
+
+    taken_tos.insert(to);
 
     actions_by_kind
         .unit_move

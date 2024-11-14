@@ -18,9 +18,9 @@ use crate::game_state::GameState;
 use super::generate::component::new_unit;
 
 pub fn process_actions(game_state: &mut GameState, actions: &ActionsByKind) {
+    process_unit_attack_actions(game_state, &actions.unit_attack);
     process_move_actions(game_state, &actions.unit_move);
     process_factory_spawn_unit_actions(game_state, &actions.factory_spawn_unit);
-    process_unit_attack_actions(game_state, &actions.unit_attack);
     process_turret_attack_actions(game_state, &actions.turret_attack);
     process_resource_transfer_actions(game_state, &actions.resource_transfer);
 }
@@ -64,8 +64,8 @@ fn process_move_action(
 
     // The move is considered successful. Move the unit and charge it for doing so
 
-    let unit_energy = game_state.world.query_one_mut::<&mut Energy>(entity).ok()?;
-    unit_energy.0 -= cost;
+    /* let unit_energy = game_state.world.query_one_mut::<&mut Energy>(entity).ok()?;
+    unit_energy.0 -= cost; */
 
     let chunk = game_state.map.chunk_at_mut(&from).unwrap();
     let _ = chunk.entities[GameObjectKind::Unit].remove(&from).unwrap();
