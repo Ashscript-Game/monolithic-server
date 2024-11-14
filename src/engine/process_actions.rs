@@ -58,11 +58,8 @@ fn process_move_action(
         .entity_at(&to, GameObjectKind::Unit)
         .is_some()
     {
-        if let Some((next_to, next_cost)) = actions_from_to.get(&to) {
-            process_move_action(game_state, actions_from_to, to, *next_to, *next_cost);
-        } else {
-            return None;
-        }
+        let (next_to, next_cost) = actions_from_to.get(&to)?;
+        process_move_action(game_state, actions_from_to, to, *next_to, *next_cost)?;
     }
 
     // The move is considered successful. Move the unit and charge it for doing so
