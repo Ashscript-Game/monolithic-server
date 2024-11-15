@@ -9,7 +9,7 @@ use ashscript_types::{
         turret::Turret,
         unit::Unit,
     },
-    intents::{FactorySpawnUnit, Intent, Intents, UnitAttack, UnitMove},
+    intents::{FactorySpawnUnit, Intent, Intents, TurretAttack, TurretRepair, UnitAttack, UnitMove},
     objects::GameObjectKind,
 };
 use hecs::{Entity, Or};
@@ -219,7 +219,7 @@ fn attack_enemy(
     intents.push(Intent::UnitAttack(UnitAttack {
         attacker_hex: unit_hex,
         target_hex: enemy_hex,
-        target_kind: GameObjectKind::Unit,
+        target_kind,
     }));
 }
 
@@ -303,25 +303,168 @@ pub fn haulers_haul(game_state: &BotGameState, memory: &mut BotMemory) {
     }
 }
 
-pub fn turrets_shoot(game_state: &BotGameState, memory: &mut BotMemory, intents: &mut Intents) {
+pub fn turrets_shoot(game_state: &mut BotGameState, memory: &mut BotMemory, intents: &mut Intents) {
     // loop through turrets
     // shoot at closest enemy
 
-    for (turret_entity, (turret, turret_tile, turret_owner)) in
-        game_state.world.query::<(&Turret, &Tile, &Owner)>().iter()
-    {
+    let turret_hexes = game_state
+        .world
+        .query::<(&Turret, &Tile)>()
+        .iter()
+        .map(|(entity, (_, tile))| tile.hex)
+        .collect::<Vec<Hex>>();
+
+    for hex in turret_hexes {
+        let turret_entity = game_state
+            .map
+            .entity_at(&hex, GameObjectKind::Turret)
+            .unwrap();
+
+        let (turret, turret_tile, turret_owner) = game_state
+            .world
+            .query_one_mut::<(&Turret, &Tile, &Owner)>(*turret_entity)
+            .ok()
+            .unwrap();
+
         if turret_owner.0 != game_state.me.id {
             continue;
         };
 
-        for (unit_entity, (unit, unit_tile, unit_owner)) in
+        let hex = turret_tile.hex;
+        let damage = turret.damage();
+        let range = turret.range();
+
+        let enemy_hexes = find_enemy_hexes_in_range(game_state, hex, range, damage);
+
+        if let Some(enemy_hex) = enemy_hexes.first() {
+            turret_attack(
+                game_state,
+                hex,
+                *enemy_hex,
+                GameObjectKind::Unit,
+                damage,
+                intents,
+            );
+            continue;
+        }
+
+        let friendly_hexes = find_friendly_hexes_in_range(game_state, hex, range, damage);
+
+        if let Some(friendly_hex) = friendly_hexes.first() {
+            turret_repair(
+                game_state,
+                hex,
+                *friendly_hex,
+                GameObjectKind::Unit,
+                damage,
+                intents,
+            );
+            continue;
+        }
+
+        /* for (unit_entity, (unit, unit_tile, unit_owner)) in
             game_state.world.query::<(&Unit, &Tile, &Owner)>().iter()
         {
             if unit_owner.0 != game_state.me.id {
                 continue;
             };
-        }
+        } */
     }
+}
+
+fn find_friendly_hexes_in_range(
+    game_state: &BotGameState,
+    around: Hex,
+    range: u32,
+    damage: u32,
+) -> Vec<Hex> {
+    let mut enemy_hexes = Vec::new();
+
+    for hex in shapes::hexagon(around, range) {
+        let distance = around.unsigned_distance_to(hex);
+        if distance > range {
+            continue;
+        }
+
+        let Some(entity) = game_state.map.entity_at(&hex, GameObjectKind::Unit) else {
+            continue;
+        };
+        let mut query = game_state
+            .world
+            .query_one::<(&Unit, &Owner, &Health)>(*entity)
+            .unwrap();
+        let Some((unit, owner, health)) = query.get() else {
+            continue;
+        };
+
+        if health.current == 0 {
+            continue;
+        };
+
+        if owner.0 == game_state.me.id {
+            continue;
+        };
+
+        enemy_hexes.push(hex);
+    }
+
+    enemy_hexes
+}
+
+fn turret_attack(
+    game_state: &mut BotGameState,
+    turret_hex: Hex,
+    enemy_hex: Hex,
+    target_kind: GameObjectKind,
+    damage: u32,
+    intents: &mut Intents,
+) {
+    // decide wether to attack based on current energy, shield health, and move needs
+
+    //
+
+    let enemy_entity = game_state.map.entity_at(&enemy_hex, target_kind).unwrap();
+    let health = game_state
+        .world
+        .query_one_mut::<&mut Health>(*enemy_entity)
+        .ok()
+        .unwrap();
+
+    health.current = health.current.saturating_sub(damage);
+
+    intents.push(Intent::TurretAttack(TurretAttack {
+        turret_hex,
+        target_hex: enemy_hex,
+        target_kind,
+    }));
+}
+
+fn turret_repair(
+    game_state: &mut BotGameState,
+    turret_hex: Hex,
+    friendly_hex: Hex,
+    target_kind: GameObjectKind,
+    damage: u32,
+    intents: &mut Intents,
+) {
+    // decide wether to attack based on current energy, shield health, and move needs
+
+    //
+
+    let enemy_entity = game_state.map.entity_at(&friendly_hex, target_kind).unwrap();
+    let health = game_state
+        .world
+        .query_one_mut::<&mut Health>(*enemy_entity)
+        .ok()
+        .unwrap();
+
+    health.current = health.current.saturating_sub(damage);
+
+    intents.push(Intent::TurretRepair(TurretRepair {
+        turret_hex,
+        target_hex: friendly_hex,
+        target_kind,
+    }));
 }
 
 pub fn factories_spawn_units(

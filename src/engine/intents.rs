@@ -27,6 +27,7 @@ pub struct IntentsByKind {
     pub factory_spawn_unit: Vec<intents::FactorySpawnUnit>,
     pub unit_spawn_unit: Vec<intents::UnitSpawnUnit>,
     pub resource_transfer: Vec<intents::ResourceTransfer>,
+    pub turret_repair: Vec<intents::TurretRepair>,
 }
 
 impl IntentsByKind {
@@ -53,6 +54,7 @@ impl IntentsByKind {
             Intent::ResourceTransfer(resource_transfer) => {
                 self.resource_transfer.push(resource_transfer)
             }
+            Intent::TurretRepair(turret_repair) => self.turret_repair.push(turret_repair),
         }
     }
 }
