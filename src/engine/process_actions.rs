@@ -22,6 +22,7 @@ pub fn process_actions(game_state: &mut GameState, actions: &ActionsByKind) {
     process_move_actions(game_state, &actions.unit_move);
     process_factory_spawn_unit_actions(game_state, &actions.factory_spawn_unit);
     process_turret_attack_actions(game_state, &actions.turret_attack);
+    process_turret_repair_actions(game_state, &actions.turret_repair);
     process_resource_transfer_actions(game_state, &actions.resource_transfer);
 }
 
@@ -119,7 +120,7 @@ fn process_turret_attack_actions(game_state: &mut GameState, actions: &[actions:
     for action in actions.iter() {
         let Some(turret_entity) = game_state
             .map
-            .entity_at(&action.turret_hex, GameObjectKind::Unit)
+            .entity_at(&action.turret_hex, action.target_kind)
         else {
             continue;
         };
@@ -146,6 +147,40 @@ fn process_turret_attack_actions(game_state: &mut GameState, actions: &[actions:
         };
 
         target_health.current = target_health.current.saturating_sub(action.damage);
+    }
+}
+
+fn process_turret_repair_actions(game_state: &mut GameState, actions: &[actions::TurretRepair]) {
+    for action in actions.iter() {
+        let Some(turret_entity) = game_state
+            .map
+            .entity_at(&action.turret_hex, action.target_kind)
+        else {
+            continue;
+        };
+        let Ok(turret_energy) = game_state
+            .world
+            .query_one_mut::<&mut Energy>(*turret_entity)
+        else {
+            continue;
+        };
+
+        /* turret_energy.0 = turret_energy.0.saturating_sub(action.cost); */
+
+        let Some(target_entity) = game_state
+            .map
+            .entity_at(&action.target_hex, action.target_kind)
+        else {
+            continue;
+        };
+        let Ok(target_health) = game_state
+            .world
+            .query_one_mut::<&mut Health>(*target_entity)
+        else {
+            continue;
+        };
+
+        target_health.current = target_health.current.saturating_add(action.repair);
     }
 }
 
