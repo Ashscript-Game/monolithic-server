@@ -137,13 +137,68 @@ fn create_turret_attack_actions(
         else {
             continue;
         };
-        turret_energy.0 = 0.max(turret_energy.0 - cost);
+        turret_energy.0 = turret_energy.0.saturating_sub(cost);
 
         actions_by_kind.turret_attack.push(actions::TurretAttack {
             turret_hex: intent.turret_hex,
             target_hex: intent.target_hex,
             target_kind: intent.target_kind,
             damage,
+            cost,
+        });
+    }
+}
+
+fn create_turret_repair_actions(
+    game_state: &mut GameState,
+    intents: &[intents::TurretRepair],
+    actions_by_kind: &mut ActionsByKind,
+) {
+    for intent in intents.iter() {
+        let Some(turret_entity) = game_state
+            .map
+            .entity_at(&intent.turret_hex, GameObjectKind::Turret)
+        else {
+            continue;
+        };
+
+        let (repair, cost) = {
+            let Ok((turret, turret_energy)) = game_state
+                .world
+                .query_one_mut::<(&Turret, &Energy)>(*turret_entity)
+            else {
+                continue;
+            };
+
+            let cost = turret.attack_cost();
+            if turret_energy.0 < cost {
+                continue;
+            }
+
+            (turret.heal_amount(), cost)
+        };
+
+        if game_state
+            .map
+            .entity_at(&intent.turret_hex, intent.target_kind)
+            .is_none()
+        {
+            continue;
+        };
+
+        let Ok(turret_energy) = game_state
+            .world
+            .query_one_mut::<&mut Energy>(*turret_entity)
+        else {
+            continue;
+        };
+        turret_energy.0 = turret_energy.0.saturating_sub(cost);
+
+        actions_by_kind.turret_repair.push(actions::TurretRepair {
+            turret_hex: intent.turret_hex,
+            target_hex: intent.target_hex,
+            target_kind: intent.target_kind,
+            repair,
             cost,
         });
     }

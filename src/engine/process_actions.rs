@@ -130,7 +130,7 @@ fn process_turret_attack_actions(game_state: &mut GameState, actions: &[actions:
             continue;
         };
 
-        turret_energy.0 = turret_energy.0.saturating_sub(action.cost);
+        /* turret_energy.0 = turret_energy.0.saturating_sub(action.cost); */
 
         let Some(target_entity) = game_state
             .map
