@@ -15,7 +15,7 @@ pub fn turret_damage(turret: &Turret) -> u32 {
 
 pub fn turret_attack(turret: &Turret, turret_tile: Tile, turret_energy: &mut Energy, unit_tile: &Tile, unit_health: &mut Health) {
     let attack_cost = turret.attack_cost();
-    if turret_energy.0 < attack_cost {
+    if turret_energy.current < attack_cost {
         return
     };
     
@@ -35,5 +35,5 @@ pub fn turret_attack(turret: &Turret, turret_tile: Tile, turret_energy: &mut Ene
         unit_health.current -= damage
     }
 
-    turret_energy.0 -= attack_cost;
+    turret_energy.current = turret_energy.current.saturating_sub(attack_cost);
 }

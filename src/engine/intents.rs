@@ -116,7 +116,7 @@ fn create_turret_attack_actions(
             };
 
             let cost = turret.attack_cost();
-            if turret_energy.0 < cost {
+            if turret_energy.current < cost {
                 continue;
             }
 
@@ -137,7 +137,7 @@ fn create_turret_attack_actions(
         else {
             continue;
         };
-        turret_energy.0 = turret_energy.0.saturating_sub(cost);
+        turret_energy.current = turret_energy.current.saturating_sub(cost);
 
         actions_by_kind.turret_attack.push(actions::TurretAttack {
             turret_hex: intent.turret_hex,
@@ -171,7 +171,7 @@ fn create_turret_repair_actions(
             };
 
             let cost = turret.attack_cost();
-            if turret_energy.0 < cost {
+            if turret_energy.current < cost {
                 continue;
             }
 
@@ -192,7 +192,7 @@ fn create_turret_repair_actions(
         else {
             continue;
         };
-        turret_energy.0 = turret_energy.0.saturating_sub(cost);
+        turret_energy.current = turret_energy.current.saturating_sub(cost);
 
         actions_by_kind.turret_repair.push(actions::TurretRepair {
             turret_hex: intent.turret_hex,
@@ -223,7 +223,7 @@ fn create_unit_attack_actions(
                     .query_one_mut::<(&Unit, &UnitBody, &Energy)>(*unit_entity).ok().unwrap();
 
             let cost = body.attack_cost();
-            if unit_energy.0 < cost {
+            if unit_energy.current < cost {
                 continue;
             }
 
@@ -245,7 +245,7 @@ fn create_unit_attack_actions(
         let Ok(unit_energy) = game_state.world.query_one_mut::<&mut Energy>(*unit_entity) else {
             continue;
         };
-        unit_energy.0 = unit_energy.0.saturating_sub(cost);
+        unit_energy.current = unit_energy.current.saturating_sub(cost);
 
         actions_by_kind.unit_attack.push(actions::UnitAttack {
             attacker_hex: intent.attacker_hex,
@@ -307,7 +307,7 @@ fn create_unit_move_action(
         .query_one_mut::<(&Unit, &UnitBody, &Energy)>(*unit_entity).ok()?;
 
     let cost = body.weight() as u32; // round up
-    if cost > unit_energy.0 {
+    if cost > unit_energy.current {
         return None;
     }
 

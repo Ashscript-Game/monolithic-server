@@ -19,7 +19,7 @@ pub fn age_units(game_state: &mut GameState) {
 
 pub fn units_generate_energy(game_state: &mut GameState) {
     for (_, (body, energy)) in game_state.world.query_mut::<(&UnitBody, &mut Energy)>() {
-        energy.0 = (energy.0 + body.energy_income()).min(body.energy_capacity());
+        energy.current = (energy.current.saturating_add(body.energy_income())).min(body.energy_capacity());
     }
 }
 
@@ -50,7 +50,7 @@ pub fn attack(
     target_health: &mut Health,
 ) {
     let cost = attacker_body.attack_cost();
-    if attacker_energy.0 < cost {
+    if attacker_energy.current < cost {
         return;
     }
 
@@ -70,5 +70,5 @@ pub fn attack(
         target_health.current -= damage
     }
 
-    attacker_energy.0 -= cost;
+    attacker_energy.current = attacker_energy.current.saturating_sub(cost);
 }

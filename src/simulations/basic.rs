@@ -63,7 +63,7 @@ pub fn generate(game_state: &mut GameState) {
             .query_one_mut::<(&Turret, &mut Energy)>(turret_entity)
             .unwrap();
 
-        turret_energy.0 = 1000;
+        turret_energy.current = 1000;
     }
 }
 
@@ -73,6 +73,6 @@ pub fn update(game_state: &mut GameState) {
     }
 
     for (entity, (turret, energy)) in &mut game_state.world.query::<(&Turret, &mut Energy)>() {
-        let _ = energy.0.saturating_add(1000);
+        let _ = energy.current.saturating_add(1000);
     }
 }
