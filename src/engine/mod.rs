@@ -5,7 +5,7 @@ mod turret;
 mod bots;
 mod factory;
 pub mod intents;
-mod process_actions;
+mod actions;
 pub mod generate;
 pub mod start;
 mod game_objects;

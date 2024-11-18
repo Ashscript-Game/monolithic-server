@@ -59,7 +59,7 @@ impl IntentsByKind {
     }
 }
 
-pub fn get_and_process_intents(game_state: &mut GameState) -> ActionsByKind {
+pub fn get_bot_actions(game_state: &mut GameState) -> ActionsByKind {
     let intents_by_kind = run_bots(game_state);
     let mut actions_by_kind = ActionsByKind::new();
 

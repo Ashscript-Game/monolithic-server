@@ -13,9 +13,7 @@ use ashscript_types::{
 use hashbrown::HashMap;
 use hexx::Hex;
 
-use crate::game_state::GameState;
-
-use super::generate::component::new_unit;
+use crate::{engine::generate::component::new_unit, game_state::GameState};
 
 pub fn process_actions(game_state: &mut GameState, actions: &ActionsByKind) {
     process_unit_attack_actions(game_state, &actions.unit_attack);

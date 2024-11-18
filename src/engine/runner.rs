@@ -1,15 +1,15 @@
 use crate::{
     engine::{
-        client::emit_tick, components::delete_0_health, game_objects::update_resources, process_actions::process_actions, unit::units_generate_energy
+        actions::{process_actions::process_actions, server_actions::{self, server_actions}}, client::emit_tick, components::delete_0_health, game_objects::update_resources, unit::units_generate_energy
     },
     game_state::GameState, simulations,
 };
-use std::{sync::Arc, time::{self, Duration}};
+use std::{arch::x86_64, sync::Arc, time::{self, Duration}};
 use ashscript_types::components::health::Health;
 use tokio::{sync::broadcast::Sender, time::sleep};
 
 use super::{
-    intents::get_and_process_intents,
+    intents::get_bot_actions,
     unit::{age_units, delete_old_units},
 };
 
@@ -24,7 +24,8 @@ pub async fn tick(game_state: &mut GameState, sender: &mut Sender<Arc<Vec<u8>>>)
 
     let start_time = time::Instant::now();
 
-    let actions_by_kind = get_and_process_intents(game_state);
+    let mut actions_by_kind = get_bot_actions(game_state);
+    server_actions(game_state, &mut actions_by_kind);
 
     emit_tick(game_state, &actions_by_kind, sender);
 
