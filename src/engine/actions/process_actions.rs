@@ -1,12 +1,7 @@
 use ashscript_types::{
     actions::{self, ActionsByKind},
     components::{
-        body::UnitBody,
-        energy::Energy,
-        health::Health,
-        owner::Owner,
-        storage::{self, Storage},
-        tile::Tile,
+        body::UnitBody, energy::Energy, health::Health, owner::Owner, storage::{self, Storage}, substation::Substation, tile::Tile
     },
     objects::GameObjectKind,
 };
@@ -22,6 +17,7 @@ pub fn process_actions(game_state: &mut GameState, actions: &ActionsByKind) {
     process_turret_attack_actions(game_state, &actions.turret_attack);
     process_turret_repair_actions(game_state, &actions.turret_repair);
     process_resource_transfer_actions(game_state, &actions.resource_transfer);
+    process_substation_collect_actions(game_state, &actions.substation_collect);
 }
 
 fn process_move_actions(game_state: &mut GameState, actions: &[actions::UnitMove]) {
@@ -253,5 +249,25 @@ fn process_resource_transfer_actions(
         {
             continue;
         }
+    }
+}
+
+
+fn process_substation_collect_actions(game_state: &mut GameState, actions: &[actions::SubstationCollect]) {
+    for action in actions.iter() {
+        let Some(entity) = game_state
+            .map
+            .entity_at(&action.substation_hex, GameObjectKind::Substation)
+        else {
+            continue;
+        };
+        let Ok((substation, energy, tile, owner)) = game_state
+            .world
+            .query_one_mut::<(&mut Substation, &mut Energy, &Tile, &Owner)>(*entity)
+        else {
+            continue;
+        };
+
+        energy.current = energy.current.saturating_add(action.energy_collected).max(energy.capacity);
     }
 }
