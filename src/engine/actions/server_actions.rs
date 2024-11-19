@@ -1,3 +1,5 @@
+use std::fmt::format;
+
 use ashscript_types::{
     actions::{ActionsByKind, SubstationCollect},
     components::{
@@ -23,11 +25,10 @@ pub fn collect_energy(game_state: &mut GameState, actions: &mut ActionsByKind) {
             .world
             .query::<(&Substation, &mut Energy, &Tile, &Owner)>()
     {
+        let mut energy: u32 = 0;
         let chunks = game_state.map.chunks_in_area(tile.hex, substation.range());
 
         for chunk in chunks {
-            let mut energy: u32 = 0;
-
             for turbine_entity in chunk.entities[GameObjectKind::Turbine].values() {
                 let mut query = game_state
                     .world
@@ -35,7 +36,7 @@ pub fn collect_energy(game_state: &mut GameState, actions: &mut ActionsByKind) {
                     .ok()
                     .unwrap();
                 let (turbine, turbine_owner) = query.get().unwrap();
-
+                println!("turbine owner: {}", turbine_owner.0);
                 if owner.0 == turbine_owner.0 {
                     energy += turbine.output_chunk(chunk);
                     // energy.current = energy.current.saturating_add(turbine.output_chunk(chunk)).min(energy.capacity);
@@ -55,11 +56,11 @@ pub fn collect_energy(game_state: &mut GameState, actions: &mut ActionsByKind) {
                     // energy.current = energy.current.saturating_add(solar_panel.output_chunk(chunk)).min(energy.capacity);
                 }
             }
-
-            actions.substation_collect.push(SubstationCollect {
-                substation_hex: tile.hex,
-                energy_collected: energy,
-            });
         }
+
+        actions.substation_collect.push(SubstationCollect {
+            substation_hex: tile.hex,
+            energy_collected: energy,
+        });
     }
 }

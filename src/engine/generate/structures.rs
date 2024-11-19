@@ -1,4 +1,4 @@
-use ashscript_types::{components::{energy::Energy, factory::Factory, health::Health, owner::Owner, storage::Storage, tile::Tile, turret::Turret}, objects::GameObjectKind, player::PlayerId};
+use ashscript_types::{components::{energy::Energy, factory::Factory, health::Health, owner::Owner, solar_panel::SolarPanel, storage::Storage, substation::Substation, tile::Tile, turbine::Turbine, turret::Turret}, objects::GameObjectKind, player::PlayerId};
 use hecs::Entity;
 use hexx::Hex;
 
@@ -19,21 +19,21 @@ pub fn spawn_factory(game_state: &mut GameState, hex: Hex, owner_id: PlayerId) -
 }
 
 pub fn spawn_turbine(game_state: &mut GameState, hex: Hex, owner_id: PlayerId) -> Entity {
-    let entity = game_state.world.spawn((GameObjectKind::Turbine, Tile::new(hex), Owner(owner_id), Health::default()));
+    let entity = game_state.world.spawn((GameObjectKind::Turbine, Turbine::default(), Tile::new(hex), Owner(owner_id), Health::default()));
     game_state.map.chunk_at_mut(&hex).unwrap().entities[GameObjectKind::Turbine].insert(hex, entity);
 
     entity
 }
 
 pub fn spawn_solar_panel(game_state: &mut GameState, hex: Hex, owner_id: PlayerId) -> Entity {
-    let entity = game_state.world.spawn((GameObjectKind::SolarPanel, Tile::new(hex), Owner(owner_id), Health::default()));
+    let entity = game_state.world.spawn((GameObjectKind::SolarPanel, SolarPanel::default(), Tile::new(hex), Owner(owner_id), Health::default()));
     game_state.map.chunk_at_mut(&hex).unwrap().entities[GameObjectKind::SolarPanel].insert(hex, entity);
 
     entity
 }
 
 pub fn spawn_substation(game_state: &mut GameState, hex: Hex, owner_id: PlayerId) -> Entity {
-    let entity = game_state.world.spawn((GameObjectKind::Substation, Tile::new(hex), Owner(owner_id), Energy::for_structure(&GameObjectKind::Substation), Health::default()));
+    let entity = game_state.world.spawn((GameObjectKind::Substation, Substation::default(), Tile::new(hex), Owner(owner_id), Energy::for_structure(&GameObjectKind::Substation), Health::default()));
     game_state.map.chunk_at_mut(&hex).unwrap().entities[GameObjectKind::Substation].insert(hex, entity);
 
     entity

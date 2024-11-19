@@ -1,7 +1,6 @@
 use ashscript_types::{
     components::{
-        energy::Energy, factory::Factory, owner::Owner, storage::Storage, tile::Tile,
-        turret::Turret,
+        energy::Energy, factory::Factory, owner::Owner, storage::Storage, substation::Substation, tile::Tile, turbine::Turbine, turret::Turret
     },
     objects::GameObjectKind,
     player::Player,
@@ -11,7 +10,7 @@ use hexx::hex;
 use uuid::Uuid;
 
 use crate::{
-    engine::generate::structures::{spawn_factory, spawn_turret},
+    engine::generate::structures::{spawn_factory, spawn_substation, spawn_turbine, spawn_turret},
     game_state::GameState,
 };
 
@@ -32,6 +31,8 @@ pub fn generate(game_state: &mut GameState) {
 
     let factory_hexes = [hex(14, -6), hex(-8, 4)];
     let turret_hexes = [hex(17, -7), hex(-11, 5)];
+    let substation_hexes = [hex(20, -8), hex(-13, 6)];
+    let turbine_hexes = [hex(23, -9), hex(-16, 7)];
 
     let player_ids = game_state
         .global
@@ -64,6 +65,16 @@ pub fn generate(game_state: &mut GameState) {
             .unwrap();
 
         turret_energy.current = 1000;
+
+        // substations
+
+        let hex = substation_hexes[i];
+        let substation_entity = spawn_substation(game_state, hex, *player_id);
+
+        // turbines
+
+        let hex = turbine_hexes[i];
+        let turbine_entity = spawn_turbine(game_state, hex, *player_id);
     }
 }
 
