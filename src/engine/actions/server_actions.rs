@@ -43,6 +43,10 @@ pub fn collect_energy(game_state: &mut GameState, actions: &mut ActionsByKind) {
                 }
             }
 
+            if game_state.global.is_night() {
+                continue;
+            }
+
             for solar_panel_entity in chunk.entities[GameObjectKind::SolarPanel].values() {
                 let mut query = game_state
                     .world
