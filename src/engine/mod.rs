@@ -4,7 +4,6 @@ pub mod runner;
 mod turret;
 mod bots;
 mod factory;
-pub mod intents;
 mod actions;
 pub mod generate;
 pub mod start;

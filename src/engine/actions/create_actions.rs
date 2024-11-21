@@ -12,9 +12,7 @@ use ashscript_types::{
 use hashbrown::{HashMap, HashSet};
 use hexx::Hex;
 
-use crate::game_state::GameState;
-
-use super::bots::run_bots;
+use crate::{engine::bots::run_bots, game_state::GameState};
 
 /* pub type IntentsByAction = EnumMap<IntentName, Vec<Intent>>; */
 /// Probably makes sense to just have bots return this directly, so that we don't have to construct it from the vec

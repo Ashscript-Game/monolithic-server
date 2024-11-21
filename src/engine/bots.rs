@@ -11,7 +11,7 @@ use crate::{
     game_state::{self, Bot, BotGameState, GameState},
 };
 
-use super::intents::IntentsByKind;
+use super::actions::create_actions::IntentsByKind;
 
 pub type PlayerScript = fn(&mut BotGameState, &mut BotMemory) -> Intents;
 pub type PlayerScripts = HashMap<Uuid, PlayerScript>;

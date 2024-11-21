@@ -9,7 +9,7 @@ use ashscript_types::components::health::Health;
 use tokio::{sync::broadcast::Sender, time::sleep};
 
 use super::{
-    intents::get_bot_actions,
+    actions::create_actions::get_bot_actions,
     unit::{age_units, delete_old_units},
 };
 
