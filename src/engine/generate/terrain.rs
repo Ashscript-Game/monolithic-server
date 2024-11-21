@@ -6,7 +6,7 @@ use ashscript_types::{
         tile::Tile,
     },
     constants::map::CHUNK_SIZE,
-    objects::GameObjectKind,
+    objects::GameObjectKind, resource::Resource,
 };
 use hecs::{Entity, World};
 use hexx::{hex, shapes, Hex};
@@ -40,7 +40,7 @@ pub fn generate_terrain(game_state: &mut GameState) {
                         kind: TerrainKind::Wall,
                     },
                     Wall,
-                    ResourceNode::new(0),
+                    ResourceNode::new(0, Resource::Coal),
                     Tile::new(hex),
                 ));
                 chunk.entities[GameObjectKind::Terrain].insert(hex, entity);
@@ -57,7 +57,7 @@ pub fn generate_terrain(game_state: &mut GameState) {
                     },
                     Wall,
                     MineralNode {},
-                    ResourceNode::new(0),
+                    ResourceNode::new(0, Resource::Minerals),
                     Tile::new(hex),
                 ));
                 chunk.entities[GameObjectKind::Terrain].insert(hex, entity);

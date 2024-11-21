@@ -36,7 +36,7 @@ pub fn collect_energy(game_state: &mut GameState, actions: &mut ActionsByKind) {
                     .ok()
                     .unwrap();
                 let (turbine, turbine_owner) = query.get().unwrap();
-                println!("turbine owner: {}", turbine_owner.0);
+                
                 if owner.0 == turbine_owner.0 {
                     energy += turbine.output_chunk(chunk);
                     // energy.current = energy.current.saturating_add(turbine.output_chunk(chunk)).min(energy.capacity);
