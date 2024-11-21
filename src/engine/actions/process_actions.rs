@@ -18,6 +18,7 @@ pub fn process_actions(game_state: &mut GameState, actions: &ActionsByKind) {
     process_turret_repair_actions(game_state, &actions.turret_repair);
     process_resource_transfer_actions(game_state, &actions.resource_transfer);
     process_substation_collect_actions(game_state, &actions.substation_collect);
+    process_extract_resource_actions(game_state, &actions.extract_resource);
 }
 
 fn process_move_actions(game_state: &mut GameState, actions: &[actions::UnitMove]) {
@@ -269,5 +270,11 @@ fn process_substation_collect_actions(game_state: &mut GameState, actions: &[act
         };
         println!("energy collected: {}", action.energy_collected);
         energy.current = energy.current.saturating_add(action.energy_collected).max(energy.capacity);
+    }
+}
+
+fn process_extract_resource_actions(game_state: &mut GameState, actions: &[actions::ExtractResource]) {
+    for action in actions {
+        
     }
 }
