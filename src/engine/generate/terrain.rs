@@ -34,16 +34,14 @@ pub fn generate_terrain(game_state: &mut GameState) {
             if noise > resource_noise_tresholds::COAL.0 && noise < resource_noise_tresholds::COAL.1
             {
                 let entity = game_state.world.spawn((
-                    GameObjectKind::Terrain,
+                    GameObjectKind::ResourceNode,
                     CoalNode {},
-                    Terrain {
-                        kind: TerrainKind::Wall,
-                    },
-                    Wall,
                     ResourceNode::new(0, Resource::Coal),
                     Tile::new(hex),
                 ));
                 chunk.entities[GameObjectKind::Terrain].insert(hex, entity);
+
+                spawn_wall_entity(&mut game_state.world, hex, chunk);
                 continue;
             }
 
@@ -51,16 +49,14 @@ pub fn generate_terrain(game_state: &mut GameState) {
                 && noise < resource_noise_tresholds::MINERALS.1
             {
                 let entity = game_state.world.spawn((
-                    GameObjectKind::Terrain,
-                    Terrain {
-                        kind: TerrainKind::Wall,
-                    },
-                    Wall,
+                    GameObjectKind::ResourceNode,
                     MineralNode {},
                     ResourceNode::new(0, Resource::Minerals),
                     Tile::new(hex),
                 ));
                 chunk.entities[GameObjectKind::Terrain].insert(hex, entity);
+
+                spawn_wall_entity(&mut game_state.world, hex, chunk);
                 continue;
             }
 

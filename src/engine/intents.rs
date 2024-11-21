@@ -1,8 +1,7 @@
 use ashscript_types::{
     actions::{self, ActionsByKind},
     components::{
-        body::UnitBody, energy::Energy, factory::Factory, storage::Storage, tile::Tile,
-        turret::Turret, unit::Unit,
+        body::UnitBody, energy::Energy, factory::Factory, resource::ResourceNode, storage::Storage, tile::Tile, turret::Turret, unit::Unit
     },
     constants::structures::IMPASSIBLE_GAME_OBJECTS,
     entity,
@@ -28,6 +27,7 @@ pub struct IntentsByKind {
     pub unit_spawn_unit: Vec<intents::UnitSpawnUnit>,
     pub resource_transfer: Vec<intents::ResourceTransfer>,
     pub turret_repair: Vec<intents::TurretRepair>,
+    pub extract_resource: Vec<intents::ExtractResource>,
 }
 
 impl IntentsByKind {
@@ -88,6 +88,16 @@ pub fn get_bot_actions(game_state: &mut GameState) -> ActionsByKind {
     create_resource_transfer_actions(
         game_state,
         &intents_by_kind.resource_transfer,
+        &mut actions_by_kind,
+    );
+    create_extract_resource_actions(
+        game_state,
+        &intents_by_kind.extract_resource,
+        &mut actions_by_kind,
+    );
+    create_turret_repair_actions(
+        game_state,
+        &intents_by_kind.turret_repair,
         &mut actions_by_kind,
     );
 
@@ -542,5 +552,48 @@ fn create_resource_transfer_actions(
                 to_hex: intent.to_hex,
                 amount: intent.amount,
             });
+    }
+}
+
+fn create_extract_resource_actions(
+    game_state: &mut GameState,
+    intents: &[intents::ExtractResource],
+    actions_by_kind: &mut ActionsByKind
+) {
+    for intent in intents.iter() {
+        let Some(unit_entity) = game_state.map.entity_at(&intent.unit_hex, GameObjectKind::Unit) else {
+            continue;
+        };
+
+        let Some(node_entity) = game_state.map.entity_at(&intent.unit_hex, GameObjectKind::ResourceNode) else {
+            continue;
+        };
+
+        let Ok(node) = game_state.world.query_one_mut::<&ResourceNode>(*node_entity) else {
+            continue;
+        };
+
+        let max_amount = node.amount;
+        let resource = node.resource;
+
+        let Ok((unit, unit_body, storage, unit_energy)) = game_state.world.query_one_mut::<(&Unit, &UnitBody, &mut Storage, &mut Energy)>(*unit_entity) else {
+            continue;
+        };
+
+        let cost = unit_body.extract_cost();
+        if cost > unit_energy.current {
+            continue;
+        }
+        unit_energy.current = unit_energy.current.saturating_sub(cost);
+
+        let amount = unit_body.extract_speed().min(max_amount);
+
+        let _ = storage.add_checked(&resource, &amount);
+
+        let Ok(node) = game_state.world.query_one_mut::<&mut ResourceNode>(*node_entity) else {
+            continue;
+        };
+
+        node.amount = node.amount.saturating_sub(amount);
     }
 }
