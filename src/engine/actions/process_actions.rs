@@ -175,7 +175,7 @@ fn process_turret_repair_actions(game_state: &mut GameState, actions: &[actions:
             continue;
         };
 
-        target_health.current = target_health.current.saturating_add(action.repair);
+        target_health.current = target_health.current.saturating_add(action.repair).min(target_health.max);
     }
 }
 
@@ -269,7 +269,7 @@ fn process_substation_collect_actions(game_state: &mut GameState, actions: &[act
             continue;
         };
         println!("energy collected: {}", action.energy_collected);
-        energy.current = energy.current.saturating_add(action.energy_collected).max(energy.capacity);
+        energy.current = energy.current.saturating_add(action.energy_collected).min(energy.capacity);
     }
 }
 
